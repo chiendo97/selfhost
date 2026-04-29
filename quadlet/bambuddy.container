@@ -11,6 +11,7 @@ User=1000:1000
 UserNS=keep-id
 AddCapability=NET_BIND_SERVICE
 Volume=/home/cle/Source/selfhost/bambuddy/data:/app/data
+Volume=/home/cle/Source/selfhost/bambuddy/backups:/app/data/backups
 Volume=/home/cle/Source/selfhost/bambuddy/logs:/app/logs
 Volume=/home/cle/Source/selfhost/bambuddy/virtual_printer:/app/data/virtual_printer
 Environment=TZ=Asia/Ho_Chi_Minh
