@@ -1,14 +1,11 @@
 [Unit]
 Description=Obico ML API
-After=network-online.target obico-redis.service
+After=network-online.target
 Wants=network-online.target
-Requires=obico-redis.service
 
 [Container]
 ContainerName=obico-ml-api
 Image=ghcr.io/gabe565/obico/ml-api:latest
-Network=obico.network
-NetworkAlias=ml_api
 HostName=ml_api
 PublishPort=127.0.0.1:3333:3333
 Environment=DEBUG=True
