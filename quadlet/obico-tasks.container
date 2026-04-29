@@ -1,0 +1,22 @@
+[Unit]
+Description=Obico Background Tasks
+After=network-online.target obico-redis.service obico-ml-api.service obico-collectstatic.service obico-migrate.service
+Wants=network-online.target
+Requires=obico-redis.service obico-ml-api.service obico-collectstatic.service obico-migrate.service
+
+[Container]
+ContainerName=obico-tasks
+Image=ghcr.io/gabe565/obico/web:latest
+Network=obico.network
+HostName=tasks
+EnvironmentFile=/home/cle/Source/selfhost/obico.env
+Volume=/home/cle/Source/selfhost/obico/data:/data
+Volume=/home/cle/Source/selfhost/obico/static:/app/static_build
+Exec=celery --app=config worker --beat --loglevel=info --concurrency=2 --queues=realtime,celery --schedule=/tmp/celerybeat-schedule
+
+[Service]
+Restart=always
+TimeoutStartSec=900
+
+[Install]
+WantedBy=multi-user.target default.target

@@ -1,0 +1,17 @@
+[Unit]
+Description=Obico Redis
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+ContainerName=obico-redis
+Image=docker.io/library/redis:8.6-alpine
+Network=obico.network
+NetworkAlias=redis
+
+[Service]
+Restart=always
+TimeoutStartSec=900
+
+[Install]
+WantedBy=multi-user.target default.target

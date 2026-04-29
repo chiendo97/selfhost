@@ -1,0 +1,18 @@
+[Unit]
+Description=Home Assistant MCP Server
+After=network-online.target homeassistant.service
+Wants=network-online.target
+
+[Container]
+ContainerName=ha-mcp
+Image=ghcr.io/homeassistant-ai/ha-mcp:latest
+EnvironmentFile=/home/cle/Source/selfhost/ha-mcp.env
+PublishPort=8086:8086
+Exec=ha-mcp-web
+
+[Service]
+Restart=always
+TimeoutStartSec=900
+
+[Install]
+WantedBy=multi-user.target default.target

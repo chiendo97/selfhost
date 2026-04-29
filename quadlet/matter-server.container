@@ -1,0 +1,19 @@
+[Unit]
+Description=Matter Server
+After=network-online.target dbus-proxy.service
+Wants=network-online.target
+Requires=dbus-proxy.service
+
+[Container]
+ContainerName=matter-server
+Image=ghcr.io/home-assistant-libs/python-matter-server:stable
+Network=host
+Volume=/home/cle/Source/selfhost/matter-server/data:/data
+Volume=%t/dbus-proxy/system_bus_socket:/run/dbus/system_bus_socket
+
+[Service]
+Restart=always
+TimeoutStartSec=900
+
+[Install]
+WantedBy=multi-user.target default.target

@@ -1,0 +1,22 @@
+[Unit]
+Description=Obico Database Migration
+After=network-online.target obico-redis.service
+Wants=network-online.target
+Requires=obico-redis.service
+
+[Container]
+ContainerName=obico-migrate
+Image=ghcr.io/gabe565/obico/web:latest
+Network=obico.network
+EnvironmentFile=/home/cle/Source/selfhost/obico.env
+Volume=/home/cle/Source/selfhost/obico/data:/data
+Volume=/home/cle/Source/selfhost/obico/static:/app/static_build
+Exec=python manage.py migrate
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+TimeoutStartSec=900
+
+[Install]
+WantedBy=multi-user.target default.target

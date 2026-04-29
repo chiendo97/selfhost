@@ -1,0 +1,22 @@
+[Unit]
+Description=Zigbee2MQTT
+After=network-online.target mqtt.service
+Wants=network-online.target
+Requires=mqtt.service
+
+[Container]
+ContainerName=zigbee2mqtt
+Image=docker.io/koenkk/zigbee2mqtt:latest
+Network=host
+GroupAdd=keep-groups
+Volume=/home/cle/Source/selfhost/zigbee2mqtt-data:/app/data
+Volume=/run/udev:/run/udev:ro
+AddDevice=/dev/ttyACM0
+Environment=TZ=Asia/Ho_Chi_Minh
+
+[Service]
+Restart=always
+TimeoutStartSec=900
+
+[Install]
+WantedBy=multi-user.target default.target

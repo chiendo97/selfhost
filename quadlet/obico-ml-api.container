@@ -1,0 +1,22 @@
+[Unit]
+Description=Obico ML API
+After=network-online.target obico-redis.service
+Wants=network-online.target
+Requires=obico-redis.service
+
+[Container]
+ContainerName=obico-ml-api
+Image=ghcr.io/gabe565/obico/ml-api:latest
+Network=obico.network
+NetworkAlias=ml_api
+HostName=ml_api
+Environment=DEBUG=True
+Environment=FLASK_APP=server.py
+Exec=gunicorn --bind=0.0.0.0:3333 --workers=1 --access-logfile=- wsgi
+
+[Service]
+Restart=always
+TimeoutStartSec=900
+
+[Install]
+WantedBy=multi-user.target default.target
