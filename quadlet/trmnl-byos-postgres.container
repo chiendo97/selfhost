@@ -1,0 +1,24 @@
+[Unit]
+Description=TRMNL BYOS Postgres
+After=network-online.target trmnl-byos-network.service
+Wants=network-online.target
+Requires=trmnl-byos-network.service
+
+[Container]
+ContainerName=trmnl-byos-postgres
+Image=docker.io/library/postgres:16-alpine
+Network=trmnl-byos.network
+NetworkAlias=postgres
+Volume=/home/cle/Source/selfhost/trmnl-byos/postgres:/var/lib/postgresql/data
+EnvironmentFile=/home/cle/Source/selfhost/trmnl-byos.env
+HealthCmd=pg_isready -U postgres
+HealthInterval=10s
+HealthTimeout=5s
+HealthRetries=5
+
+[Service]
+Restart=always
+TimeoutStartSec=900
+
+[Install]
+WantedBy=multi-user.target default.target

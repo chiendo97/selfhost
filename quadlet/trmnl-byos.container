@@ -1,0 +1,19 @@
+[Unit]
+Description=TRMNL BYOS Next.js
+After=network-online.target trmnl-byos-postgres.service
+Wants=network-online.target
+Requires=trmnl-byos-postgres.service
+
+[Container]
+ContainerName=trmnl-byos
+Image=ghcr.io/usetrmnl/byos_next:0.2.2
+Network=trmnl-byos.network
+EnvironmentFile=/home/cle/Source/selfhost/trmnl-byos.env
+PublishPort=3000:3000
+
+[Service]
+Restart=always
+TimeoutStartSec=900
+
+[Install]
+WantedBy=multi-user.target default.target

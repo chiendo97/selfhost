@@ -1,0 +1,9 @@
+[Unit]
+Description=TRMNL BYOS network
+
+[Network]
+NetworkName=trmnl-byos
+Driver=bridge
+
+[Install]
+WantedBy=multi-user.target default.target
