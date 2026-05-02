@@ -41,6 +41,14 @@
 - Replaced Pulse local password/API-token auth on CT 102 with VM 121
   Traefik-injected proxy auth for `pulse.chienlt.com`, after backing up the
   active `/etc/pulse/.env` and `/etc/pulse/api_tokens.json` files.
+- Installed `pulse-agent.service` on `cle-pve`, pointed it at CT 102 Pulse over
+  `http://192.168.50.18:7655`, enabled PVE Proxmox mode, and disabled
+  Docker/Kubernetes collection for the Proxmox host. The final Pulse agent API
+  token is limited to `host-agent:report` and `host-agent:config:read`.
+- Migrated Pulse's Proxmox connection from `root@pam` password auth to
+  dedicated token auth with `pulse-monitor@pam!pulse-cle-pve-192-168-50-18`.
+  Verified Pulse sees one online `cle-pve` host agent with temperature and
+  SMART data.
 - Updated external `cle-viettel` Traefik `bazarr.chienlt.com` backend from old
   `unraid-cle` tail IP to VM 121 `selfhost-pve` tail IP
   `100.81.144.82:6767`.

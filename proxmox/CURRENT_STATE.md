@@ -333,10 +333,27 @@ VM 121 Traefik routes local/LXC services:
 | `pulse.chienlt.com` | `http://192.168.50.18:7655` |
 | `homepage.chienlt.com` | Homepage container on VM 121 |
 
-Pulse local password auth and API-token auth are disabled on CT 102. VM 121
-Traefik injects Pulse proxy-auth headers for `pulse.chienlt.com`, so the UI
-opens as proxy user `cle`; direct backend access without the proxy secret is
-rejected.
+Pulse local password auth is disabled on CT 102. VM 121 Traefik injects Pulse
+proxy-auth headers for `pulse.chienlt.com`, so the UI opens as proxy user
+`cle`; direct backend access without the proxy secret is rejected. Pulse API
+token auth remains enabled for the `cle-pve` host agent with only
+`host-agent:report` and `host-agent:config:read` scopes.
+
+`cle-pve` runs `pulse-agent.service` from `/usr/local/bin/pulse-agent`, pointing
+at `http://192.168.50.18:7655` with host metrics enabled, Docker/Kubernetes
+disabled, and Proxmox mode enabled for PVE. The agent token is stored root-only
+at `/var/lib/pulse-agent/token`.
+
+Pulse now monitors Proxmox through dedicated token auth:
+
+```text
+pulse-monitor@pam!pulse-cle-pve-192-168-50-18
+```
+
+The old `root@pam` password-backed Pulse node config has been replaced. The
+`pulse-monitor@pam` user has `PVEAuditor`, custom `PulseMonitor`, and
+`PVEDatastoreAdmin` on `/storage` for monitoring, guest-agent/storage visibility,
+and backup visibility.
 
 These routes are served by the external `cle-viettel` Traefik path to VM 121
 over Tailscale:
