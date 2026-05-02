@@ -247,8 +247,3 @@ import {
   to = cloudflare_dns_record.chienlt["plex"]
   id = "5f2460ae1b6c01224007c6013a62beb3/1cf23463a03eaa7ed18dd8da5953eaee"
 }
-
-import {
-  to = cloudflare_dns_record.chienlt["amz"]
-  id = "5f2460ae1b6c01224007c6013a62beb3/e9ae2ff809a6f8f1152a1e4fc036930c"
-}

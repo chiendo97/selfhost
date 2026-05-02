@@ -65,14 +65,6 @@ locals {
       proxied = false
       ttl     = 1
     }
-
-    amz = {
-      name    = "amz.chienlt.com"
-      type    = "CNAME"
-      content = "9315ec0b-64d4-4744-a743-7bb0c2e35e45.cfargotunnel.com"
-      proxied = true
-      ttl     = 1
-    }
   }
 }
 
