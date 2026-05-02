@@ -1,6 +1,6 @@
 # cle-pve Current State
 
-Last verified: 2026-05-01.
+Last verified: 2026-05-02.
 
 ## Host
 
@@ -83,9 +83,9 @@ after the app LXCs so Traefik and Homepage come up after their LAN backends.
 ## IaC
 
 OpenTofu adoption has started under `proxmox/opentofu` in this repo. All current
-LXCs are now tightened enough for OpenTofu to plan no changes without blanket
-`ignore_changes = all`. The two NixOS VMs remain adopt-only with blanket
-`ignore_changes = all`.
+LXCs and VM 101 `homelab-pve` are now tightened enough for OpenTofu to plan no
+changes without blanket `ignore_changes = all`. VM 121 `selfhost-pve` remains
+adopt-only with blanket `ignore_changes = all`.
 
 Local OpenTofu state on this workstation has imported all 9 active guests and
 verified a no-op follow-up plan. The state file and local token env file are
@@ -94,7 +94,7 @@ ignored by git.
 A copy of the local state is backed up on `cle-pve`:
 
 ```text
-/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-101715
+/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-102758
 ```
 
 Proxmox has user/token `opentofu@pve!cle-pve-adopt` for this adoption layer.
@@ -113,6 +113,11 @@ Each tightened LXC has a CT-scoped role with `VM.Audit,VM.Config.Options`:
 | 114 | `OpenTofuImmichManage` |
 | 115 | `OpenTofuBackupManage` |
 
+VM 101 has VM-scoped role `OpenTofuHomelabManage` with
+`VM.Audit,VM.Config.Disk,VM.Config.Options,VM.GuestAgent.Audit`. It does not
+include `VM.PowerMgmt`, so the OpenTofu token cannot shut down or restart
+`homelab-pve`.
+
 OpenTofu does not yet enforce ZFS datasets, Proxmox storage definitions, backup
 jobs, app config, or host-level service wiring. Current LXC bind mounts and
 device passthrough are represented in OpenTofu and plan cleanly.
@@ -121,6 +126,10 @@ Targeted ignores remain for LXC `operating_system[0].template_file_id`, because
 the provider requires a template for create but imported containers do not keep
 that template in live state. CT 102 also ignores the noisy community-script HTML
 description.
+
+VM 101 keeps a targeted ignore for `disk[0].path_in_datastore`, because that is
+provider/import metadata for the existing disk rather than desired
+configuration.
 
 ## Storage
 

@@ -1,5 +1,5 @@
 import {
-  to = proxmox_virtual_environment_vm.qemu["homelab_pve"]
+  to = proxmox_virtual_environment_vm.homelab_pve
   id = "cle-pve/101"
 }
 

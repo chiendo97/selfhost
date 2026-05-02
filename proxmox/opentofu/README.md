@@ -8,9 +8,10 @@ setup.
 Current scope:
 
 - all existing guests are imported into local OpenTofu state;
-- all current LXCs are tightened and plan no changes without blanket
+- all current LXCs and VM 101 `homelab-pve` are tightened and plan no changes
+  without blanket `ignore_changes = all`;
+- VM 121 `selfhost-pve` is still adopt-only with blanket
   `ignore_changes = all`;
-- the two NixOS VMs are still adopt-only with blanket `ignore_changes = all`;
 - all guest resources use `prevent_destroy = true`.
 
 OpenTofu does not yet own:
@@ -40,6 +41,7 @@ has:
 ```text
 PVEAuditor
 OpenTofuAdoptDisk
+OpenTofuHomelabManage on /vms/101
 OpenTofuPulseManage on /vms/102
 OpenTofuPlexManage on /vms/110
 OpenTofuJellyfinManage on /vms/111
@@ -55,6 +57,11 @@ read imported VM disk metadata.
 The CT-scoped manage roles only add `VM.Audit,VM.Config.Options`, which was
 enough to apply provider normalization for the current LXCs without broad VM
 admin privileges.
+
+`OpenTofuHomelabManage` adds
+`VM.Audit,VM.Config.Disk,VM.Config.Options,VM.GuestAgent.Audit` on `/vms/101`.
+It intentionally does not include `VM.PowerMgmt`, so this OpenTofu token cannot
+shut down or restart `homelab-pve`.
 
 The default endpoint is:
 
@@ -77,7 +84,7 @@ only source of truth.
 Current local state backup:
 
 ```text
-cle-pve:/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-101715
+cle-pve:/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-102758
 ```
 
 The backup directory is root-owned and mode `0700`. A matching `.sha256` file
@@ -143,8 +150,11 @@ without blanket `ignore_changes = all`:
 115 backup-pve
 ```
 
-The two NixOS VMs still use blanket `ignore_changes = all` and are the next
-OpenTofu tightening candidates.
+VM 101 `homelab-pve` has also been split into its own tightened resource and
+plans no changes without blanket `ignore_changes = all`.
+
+VM 121 `selfhost-pve` still uses blanket `ignore_changes = all` and is the next
+OpenTofu tightening candidate.
 
 OpenTofu owns the normal provider-visible LXC inventory fields, including CPU,
 memory, rootfs size, mounts, device passthrough, network, startup order, and
@@ -161,3 +171,7 @@ Targeted LXC ignores remain:
 Each tightened LXC has a CT-scoped Proxmox role with
 `VM.Audit,VM.Config.Options` so OpenTofu can apply provider normalization without
 granting broad VM admin privileges.
+
+VM 101 keeps a targeted ignore for `disk[0].path_in_datastore`, because that is
+provider/import metadata for the existing disk rather than desired
+configuration.

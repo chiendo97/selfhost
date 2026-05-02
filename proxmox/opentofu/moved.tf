@@ -32,3 +32,8 @@ moved {
   from = proxmox_virtual_environment_container.lxc["immich_pve"]
   to   = proxmox_virtual_environment_container.app_igpu_lxc["immich_pve"]
 }
+
+moved {
+  from = proxmox_virtual_environment_vm.qemu["homelab_pve"]
+  to   = proxmox_virtual_environment_vm.homelab_pve
+}

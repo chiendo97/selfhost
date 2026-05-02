@@ -20,6 +20,14 @@
   - `115 backup-pve`
 - Each tightened LXC received a CT-scoped `VM.Audit,VM.Config.Options` role for
   provider normalization. Follow-up OpenTofu plan verified no changes.
+- Split VM 101 `homelab-pve` into its own tightened OpenTofu resource and
+  verified a no-op plan without blanket `ignore_changes = all`.
+- Granted `opentofu@pve` a VM-scoped `OpenTofuHomelabManage` role on
+  `/vms/101` with `VM.Audit`, `VM.Config.Disk`, `VM.Config.Options`, and
+  `VM.GuestAgent.Audit`. `VM.PowerMgmt` was intentionally not granted.
+- Backed up the updated local OpenTofu state to
+  `/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-102758` with
+  a matching SHA256 file.
 
 ## 2026-05-01
 
