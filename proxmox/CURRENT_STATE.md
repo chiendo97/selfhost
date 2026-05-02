@@ -12,6 +12,7 @@ Last verified: 2026-05-01.
 | Kernel | `6.17.13-4-pve` |
 | Access | `ssh cle-pve` |
 | UI | `https://192.168.50.13:8006` |
+| Swap | 16G zram via `zram-swap.service`, `vm.swappiness=10` |
 
 ## Guests
 
@@ -32,6 +33,36 @@ Removed guests:
 - VM 100 `unraid`
 - VM 120 `apps-docker-pve`
 
+## LXC Resource Limits
+
+Current Proxmox LXC limits after tuning:
+
+| ID | Name | Cores | Memory | Swap | Rootfs |
+|---:|---|---:|---:|---:|---:|
+| 102 | `pulse` | 1 | 512M | 256M | 4G |
+| 110 | `plex-pve` | 4 | 4096M | 1024M | 24G |
+| 111 | `jellyfin-pve` | 2 | 2048M | 512M | 24G |
+| 112 | `nas-pve` | 1 | 512M | 256M | 16G |
+| 113 | `frigate-pve` | 4 | 4096M | 1024M | 24G |
+| 114 | `immich-pve` | 6 | 4096M | 1024M | 32G |
+| 115 | `backup-pve` | 2 | 1536M | 512M | 8G |
+
+Rootfs sizes are ZFS-backed and not shrunk during tuning. Memory and CPU limits
+are tuned conservatively from Proxmox day/week max usage, with extra headroom for
+Plex, Frigate, Immich, and backup jobs.
+
+## VM Swap
+
+The NixOS VMs use in-guest zram swap from their dotfiles NixOS configs:
+
+| VM | RAM | zram swap |
+|---:|---:|---:|
+| 101 `homelab-pve` | 8G | ~8G |
+| 121 `selfhost-pve` | 12G | ~12G |
+
+This is guest-local compressed swap. It does not create an NVMe swap partition
+or swapfile.
+
 ## Boot Order
 
 ```text
@@ -48,6 +79,24 @@ Removed guests:
 
 `nas-pve` starts before consumers of the media export. `selfhost-pve` starts
 after the app LXCs so Traefik and Homepage come up after their LAN backends.
+
+## IaC
+
+OpenTofu adoption has started under `proxmox/opentofu` in this repo. Current
+scope is guest inventory import only: VMs/LXCs are declared with
+`prevent_destroy = true` and `ignore_changes = all` until imported state is
+verified clean.
+
+Local OpenTofu state on this workstation has imported all 9 active guests and
+verified a no-op follow-up plan. The state file and local token env file are
+ignored by git.
+
+Proxmox has user/token `opentofu@pve!cle-pve-adopt` for this adoption layer.
+The user has `PVEAuditor` plus custom role `OpenTofuAdoptDisk` containing only
+`VM.Config.Disk`.
+
+OpenTofu does not yet enforce ZFS datasets, Proxmox storage definitions, backup
+jobs, app config, or host/LXC special wiring.
 
 ## Storage
 
@@ -165,13 +214,30 @@ VM 121 Traefik routes local/LXC services:
 
 | Public host | Backend |
 |---|---|
+| `proxmox.chienlt.com` | `https://192.168.50.13:8006` |
 | `plex.chienlt.com` | `http://192.168.50.242:32400` |
 | `immich-server.chienlt.com` | `http://192.168.50.246:2283` |
 | `frigate.chienlt.com` | `http://192.168.50.245:5000` |
+| `kopia.chienlt.com` | `http://192.168.50.53:51515` |
+| `bambuddy.chienlt.com` | `http://100.107.253.59:8000` |
 | `homepage.chienlt.com` | Homepage container on VM 121 |
 
 `jellyseerr.chienlt.com` is routed through the external `cle-viettel`
 Traefik path to VM 121 tail IP `100.81.144.82:5056`.
+
+## Homepage
+
+Homepage live config:
+
+```text
+/srv/selfhost/homepage/config/services.yaml
+/srv/selfhost/homepage/config/widgets.yaml
+```
+
+The Homepage container mounts VM 121 `/mnt/user/media` read-only as
+`/storage/media`. `widgets.yaml` includes a `Media Storage` resources widget
+for `/storage/media`, so Homepage shows the same media filesystem capacity that
+Sonarr and Radarr see through their `/data` mount.
 
 ## Source Of Truth
 

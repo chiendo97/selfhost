@@ -16,6 +16,8 @@ Volume=/home/cle/Source/selfhost/bambuddy/logs:/app/logs
 Volume=/home/cle/Source/selfhost/bambuddy/virtual_printer:/app/data/virtual_printer
 Environment=TZ=Asia/Ho_Chi_Minh
 Environment=PORT=8000
+Environment=APP_URL=https://bambuddy.chienlt.com
+Environment=TRUSTED_PROXY_IPS=100.81.144.82
 
 [Service]
 Restart=always

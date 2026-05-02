@@ -13,6 +13,7 @@ updated whenever guests, storage, routes, or backup policy changes.
 | `OPERATIONS.md` | Common commands and runbooks for day-to-day maintenance. |
 | `CHANGELOG.md` | Dated infrastructure changes and migration milestones. |
 | `CLAUDE.md` | Short agent-facing context for future automation sessions. |
+| `opentofu/` | First IaC layer for adopting existing Proxmox guests into OpenTofu state. |
 
 ## Rules
 
@@ -20,8 +21,8 @@ updated whenever guests, storage, routes, or backup policy changes.
   `CHANGELOG.md`, not in active runbooks.
 - Do not commit copied runtime state such as `.claude`, credentials, logs,
   Caddyfiles, Docker `.env` files, or app databases.
-- The repo `.gitignore` only unignores root-level `proxmox/*.md` files on
-  purpose.
+- The repo `.gitignore` only unignores root-level `proxmox/*.md` files and the
+  `proxmox/opentofu` IaC scaffold on purpose.
 - Prefer live verification from `cle-pve` before updating facts here.
 
 ## Main Access

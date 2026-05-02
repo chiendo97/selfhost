@@ -31,6 +31,24 @@
 - Added Kopia backup layer in CT 115 `backup-pve`.
 - Verified HTTP access for Plex, Jellyfin, Frigate, and Immich after the data
   moves.
+- Added VM 121 Traefik routes for `proxmox.chienlt.com` and
+  `kopia.chienlt.com`.
+- Added a Homepage `Media Storage` resources widget by mounting VM 121
+  `/mnt/user/media` into the Homepage container as `/storage/media` read-only.
+- Tuned LXC CPU and memory limits from Proxmox day/week max usage while keeping
+  rootfs sizes unchanged.
+- Added 16G host zram swap on `cle-pve` with `vm.swappiness=10`.
+- Enabled in-guest zram swap for NixOS VMs 101 `homelab-pve` and 121
+  `selfhost-pve`.
+- Added VM 121 Traefik route for `bambuddy.chienlt.com` to N100 Bambuddy over
+  Tailscale.
+- Added an initial OpenTofu adoption scaffold under `proxmox/opentofu` for the
+  existing Proxmox VMs/LXCs. The first pass uses import blocks,
+  `prevent_destroy`, and `ignore_changes = all` so it can establish state before
+  managing live guest settings.
+- Created `opentofu@pve!cle-pve-adopt` with read-only audit permissions plus
+  `VM.Config.Disk`, imported all 9 live guests into local OpenTofu state, and
+  verified a no-op follow-up plan.
 
 ## Historical Notes
 

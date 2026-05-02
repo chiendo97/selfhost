@@ -5,3 +5,8 @@
 !quadlet/**
 !proxmox/
 !proxmox/*.md
+!proxmox/opentofu/
+!proxmox/opentofu/*.tf
+!proxmox/opentofu/*.md
+!proxmox/opentofu/.gitignore
+!proxmox/opentofu/.terraform.lock.hcl
