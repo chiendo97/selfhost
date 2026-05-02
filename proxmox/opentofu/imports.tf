@@ -42,3 +42,8 @@ import {
   to = proxmox_virtual_environment_container.backup_pve
   id = "cle-pve/115"
 }
+
+import {
+  to = tailscale_acl.policy
+  id = "acl"
+}

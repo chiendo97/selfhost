@@ -1,0 +1,140 @@
+{
+	"groups": {
+		"group:exit-users": [
+			"cuong.tran.4649@gmail.com",
+			"buiquybao.c500@gmail.com",
+			"anhvietdl.kid@gmail.com",
+			"chienlt@homic.vn",
+		],
+	},
+
+	"tagOwners": {
+		// trusted dev devices
+		"tag:trusted": ["autogroup:admin"],
+
+		// other server
+		"tag:server": ["autogroup:admin"],
+	},
+
+	"hosts": {
+		"cle-viettel-vpn": "100.107.99.32",
+		"oracle":          "100.79.39.73",
+		"unraid-cle":      "100.89.182.96",
+		"ts-mcp":          "100.65.93.82",
+		"n100":            "100.107.253.59",
+	},
+
+	"acls": [
+		// --- Trusted devices: full access ---
+		{
+			"action": "accept",
+			"src":    ["tag:trusted"],
+			"dst":    ["*:*"],
+		},
+		// --- Exit-node users: VPN + internet ---
+		{
+			"action": "accept",
+			"src":    ["group:exit-users"],
+			"dst":    ["cle-viettel-vpn:*", "autogroup:internet:*"],
+		},
+		// --- Shared services: DNS + web on oracle, DNS on viettel ---
+		{
+			"action": "accept",
+			"src":    ["*"],
+
+			"dst": [
+				"cle-viettel-vpn:53",
+				"oracle:53",
+				"oracle:80",
+				"oracle:443",
+			],
+		},
+		// --- Monitoring: oracle -> unraid node_exporter ---
+		{
+			"action": "accept",
+			"src":    ["oracle"],
+			"dst":    ["unraid-cle:9100"],
+		},
+		// --- Guest: thao -> unraid full access ---
+		{
+			"action": "accept",
+			"src":    ["nguyenphuongthao9497@gmail.com"],
+			"dst":    ["unraid-cle:*"],
+		},
+	],
+
+	"ssh": [
+		{
+			"src":    ["tag:trusted"],
+			"dst":    ["tag:trusted"],
+			"users":  ["autogroup:nonroot", "root"],
+			"action": "accept",
+		},
+		{
+			"src":    ["autogroup:member", "tag:trusted"],
+			"dst":    ["tag:server"],
+			"users":  ["autogroup:nonroot", "root"],
+			"action": "accept",
+		},
+	],
+
+	"nodeAttrs": [
+		{
+			"target": ["autogroup:member"],
+			"attr":   ["funnel"],
+		},
+	],
+
+	"grants": [
+		// --- MCP: all members -> ts-mcp tools ---
+		{
+			"src": ["tag:trusted"],
+			"dst": ["ts-mcp"],
+
+			"app": {
+				"jaxxstorm.com/cap/mcp": [
+					{
+						"tools":     ["*"],
+						"resources": ["*"],
+					},
+				],
+			},
+		},
+		{
+			"src": ["host:oracle"],
+			"dst": ["host:n100"],
+			"ip":  ["8086"],
+		},
+		{
+			"src": ["host:cle-viettel-vpn"],
+			"dst": ["100.111.70.79"],
+			"ip":  ["*"],
+		},
+		// --- Media: viettel -> unraid jellyfin/bazarr/sonarr ---
+		{
+			"src": ["cle-viettel-vpn"],
+			"dst": ["unraid-cle"],
+			"ip":  ["8096"],
+		},
+		// --- Media: viettel -> unraid jellyfin/bazarr/sonarr ---
+		{
+			"src": ["cle-viettel-vpn"],
+			"dst": ["100.81.144.82"],
+			"ip":  ["5056"],
+		},
+		// --- Media: viettel -> selfhost Bazarr ---
+		{
+			"src": ["cle-viettel-vpn"],
+			"dst": ["100.81.144.82"],
+			"ip":  ["6767"],
+		},
+	],
+
+	"sshTests": [
+		{
+			"src":    "tag:trusted",
+			"dst":    ["tag:trusted"],
+			"accept": ["root", "autogroup:nonroot"],
+		},
+	],
+}

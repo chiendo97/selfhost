@@ -10,6 +10,8 @@ Current scope:
 - all existing guests are imported into local OpenTofu state;
 - all current LXCs and both NixOS VMs are tightened and plan no changes without
   blanket `ignore_changes = all`;
+- the live Tailscale tailnet policy is imported and managed from
+  `tailscale-policy.hujson`;
 - all guest resources use `prevent_destroy = true`.
 
 OpenTofu does not yet own:
@@ -17,6 +19,7 @@ OpenTofu does not yet own:
 - ZFS pools or datasets;
 - Proxmox storage definitions;
 - backup jobs;
+- Tailscale device lifecycle, auth keys, or device tags;
 - NixOS, Home Manager, Docker, Traefik, Homepage, or app config.
 
 Those stay in the current manual/docs flow until the later Ansible layer is
@@ -30,11 +33,12 @@ Use the provider's environment variables:
 
 ```bash
 export PROXMOX_VE_API_TOKEN='user@realm!tokenid=token-secret'
+export TAILSCALE_API_KEY='tskey-api-...'
 ```
 
-Current local setup uses `opentofu@pve!cle-pve-adopt`. The token secret is in
-ignored `.env.local` on this workstation only. On `cle-pve`, `opentofu@pve`
-has:
+Current local setup uses `opentofu@pve!cle-pve-adopt`. The Proxmox token secret
+is in ignored `.env.local` on this workstation only. The Tailscale API key is in
+ignored `../.env`. On `cle-pve`, `opentofu@pve` has:
 
 ```text
 PVEAuditor
@@ -83,7 +87,7 @@ only source of truth.
 Current local state backup:
 
 ```text
-cle-pve:/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-115927
+cle-pve:/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-130629
 ```
 
 The backup directory is root-owned and mode `0700`. A matching `.sha256` file
@@ -134,6 +138,9 @@ metadata noise. Keep `ignore_changes = all` until that is true.
 This was completed locally on 2026-05-01: 9 guests imported, 0 added, 0 changed,
 0 destroyed, and the follow-up plan was no-op.
 
+The Tailscale ACL resource was adopted on 2026-05-02 with one import, 0 added,
+0 changed, 0 destroyed, and a no-op follow-up plan.
+
 ## After Adoption
 
 The current LXC tightening pass is complete. All current LXCs plan no changes
@@ -181,3 +188,19 @@ Targeted VM ignores remain:
   leading space.
 - VM 121 `keyboard_layout` and `agent[0].type`, because normalizing those
   provider defaults previously caused the provider to request VM shutdown.
+
+## Tailscale Policy
+
+`tailscale_acl.policy` manages the full tailnet policy from:
+
+```text
+tailscale-policy.hujson
+```
+
+This is whole-file ownership. Manual ACL edits in the Tailscale admin console or
+through the API will show as drift on the next `tofu plan`; if those edits are
+intended, pull them back into `tailscale-policy.hujson` before applying other
+OpenTofu changes.
+
+The resource only manages the policy file. Device onboarding, auth keys, device
+tags, and host runtime Tailscale config are still managed outside OpenTofu.

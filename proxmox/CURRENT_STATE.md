@@ -83,17 +83,17 @@ after the app LXCs so Traefik and Homepage come up after their LAN backends.
 ## IaC
 
 OpenTofu adoption has started under `proxmox/opentofu` in this repo. All current
-LXCs and both NixOS VMs are now tightened enough for OpenTofu to plan no changes
-without blanket `ignore_changes = all`.
+LXCs, both NixOS VMs, and the Tailscale tailnet policy are now imported and plan
+no changes.
 
-Local OpenTofu state on this workstation has imported all 9 active guests and
-verified a no-op follow-up plan. The state file and local token env file are
-ignored by git.
+Local OpenTofu state on this workstation has imported all 9 active guests plus
+the live Tailscale policy and verified a no-op follow-up plan. The state file
+and local token env files are ignored by git.
 
 A copy of the local state is backed up on `cle-pve`:
 
 ```text
-/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-115927
+/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-130629
 ```
 
 Proxmox has user/token `opentofu@pve!cle-pve-adopt` for this adoption layer.
@@ -122,9 +122,14 @@ VM 121 has VM-scoped role `OpenTofuSelfhostManage` with
 include `VM.PowerMgmt`, so the OpenTofu token cannot shut down or restart
 `selfhost-pve`.
 
+OpenTofu manages the full Tailscale policy from
+`proxmox/opentofu/tailscale-policy.hujson`. Manual ACL edits in the Tailscale
+admin console or API will drift until copied back into that file.
+
 OpenTofu does not yet enforce ZFS datasets, Proxmox storage definitions, backup
-jobs, app config, or host-level service wiring. Current LXC bind mounts and
-device passthrough are represented in OpenTofu and plan cleanly.
+jobs, app config, host-level service wiring, or Tailscale device lifecycle/auth
+keys. Current LXC bind mounts and device passthrough are represented in
+OpenTofu and plan cleanly.
 
 Targeted ignores remain for LXC `operating_system[0].template_file_id`, because
 the provider requires a template for create but imported containers do not keep
@@ -270,8 +275,16 @@ Traefik injects Pulse proxy-auth headers for `pulse.chienlt.com`, so the UI
 opens as proxy user `cle`; direct backend access without the proxy secret is
 rejected.
 
-`jellyseerr.chienlt.com` is routed through the external `cle-viettel`
-Traefik path to VM 121 tail IP `100.81.144.82:5056`.
+These routes are served by the external `cle-viettel` Traefik path to VM 121
+over Tailscale:
+
+| Public host | Backend |
+|---|---|
+| `jellyseerr.chienlt.com` | `http://100.81.144.82:5056` |
+| `bazarr.chienlt.com` | `http://100.81.144.82:6767` |
+
+The OpenTofu-managed tailnet policy grants `cle-viettel-vpn` access to those VM
+121 ports.
 
 ## Homepage
 

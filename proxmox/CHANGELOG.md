@@ -41,6 +41,17 @@
 - Replaced Pulse local password/API-token auth on CT 102 with VM 121
   Traefik-injected proxy auth for `pulse.chienlt.com`, after backing up the
   active `/etc/pulse/.env` and `/etc/pulse/api_tokens.json` files.
+- Updated external `cle-viettel` Traefik `bazarr.chienlt.com` backend from old
+  `unraid-cle` tail IP to VM 121 `selfhost-pve` tail IP
+  `100.81.144.82:6767`.
+- Updated the Tailscale policy through the API so `cle-viettel-vpn` can reach
+  VM 121 Bazarr on port `6767`.
+- Imported the live Tailscale tailnet policy into OpenTofu as
+  `tailscale_acl.policy`, sourced from
+  `proxmox/opentofu/tailscale-policy.hujson`.
+- Backed up the updated local OpenTofu state to
+  `/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-130629` with
+  a matching SHA256 file.
 
 ## 2026-05-01
 
