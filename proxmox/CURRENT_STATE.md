@@ -86,17 +86,18 @@ OpenTofu adoption has started under `proxmox/opentofu` in this repo. All current
 LXCs, both NixOS VMs, the Tailscale tailnet policy, Tailscale DNS config, and
 stable Tailscale device tags/key-expiry/route settings are now imported and
 plan no changes. The current Proxmox backup job, storage definitions, and
-Proxmox APT repository enablement are also imported and plan no changes.
+Proxmox APT repository enablement are also imported and plan no changes. Current
+`chienlt.com` Cloudflare DNS records are imported and plan no changes.
 
 Local OpenTofu state on this workstation has imported all 9 active guests plus
 the live Tailscale policy, DNS config, stable device settings, selected route
-settings, and platform settings, then verified a no-op follow-up plan. The state
-file and local token env files are ignored by git.
+settings, platform settings, and Cloudflare DNS records, then verified a no-op
+follow-up plan. The state file and local token env files are ignored by git.
 
 A copy of the local state is backed up on `cle-pve`:
 
 ```text
-/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-173553
+/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-181407
 ```
 
 Proxmox has user/token `opentofu@pve!cle-pve-adopt` for this adoption layer.
@@ -170,6 +171,23 @@ OpenTofu manages the Proxmox backup job `nightly-guests`, the storage
 definitions `local`, `local-zfs`, `fast-vm`, and `tank-backup`, and Proxmox APT
 repository enablement for `no-subscription`, `enterprise`, `test`, and
 `ceph-squid-enterprise`.
+
+OpenTofu also manages current `chienlt.com` Cloudflare DNS records:
+
+```text
+*.chienlt.com -> 100.81.144.82
+chienlt.com -> 100.104.100.77
+adguard.chienlt.com -> 171.244.62.91
+adguard-oracle.chienlt.com -> 168.138.176.219
+bazarr.chienlt.com -> 171.244.62.91
+jellyfin.chienlt.com -> 171.244.62.91
+jellyseerr.chienlt.com -> 171.244.62.91
+plex.chienlt.com -> 100.81.144.82
+amz.chienlt.com -> 9315ec0b-64d4-4744-a743-7bb0c2e35e45.cfargotunnel.com
+```
+
+Direct tailnet records are unproxied because Cloudflare cannot proxy private
+Tailscale `100.x` addresses.
 
 OpenTofu does not yet enforce ZFS datasets, host package installation, system
 services, zram/sysctl, app config, host-level service wiring, or Tailscale

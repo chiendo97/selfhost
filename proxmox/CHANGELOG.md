@@ -72,6 +72,13 @@
 - Backed up the updated local OpenTofu state to
   `/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-173553` with
   a matching SHA256 file.
+- Added Cloudflare and Tailscale provider tokens to ignored
+  `proxmox/opentofu/.env.local` for local OpenTofu runs.
+- Imported current `chienlt.com` Cloudflare DNS records into OpenTofu with 9
+  imports and no live DNS changes.
+- Backed up the updated local OpenTofu state to
+  `/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-181407` with
+  a matching SHA256 file.
 
 ## 2026-05-01
 

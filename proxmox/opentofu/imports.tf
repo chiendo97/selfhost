@@ -192,3 +192,48 @@ import {
   to = tailscale_device_subnet_routes.stable["oracle"]
   id = "nWvSuVVhZ321CNTRL"
 }
+
+import {
+  to = cloudflare_dns_record.chienlt["wildcard"]
+  id = "5f2460ae1b6c01224007c6013a62beb3/7d0067152e199a9bb3f9f90532f521ac"
+}
+
+import {
+  to = cloudflare_dns_record.chienlt["apex"]
+  id = "5f2460ae1b6c01224007c6013a62beb3/c71b8e41b5d46c0491d5a25a86d75d9c"
+}
+
+import {
+  to = cloudflare_dns_record.chienlt["adguard"]
+  id = "5f2460ae1b6c01224007c6013a62beb3/7ca9026f828f6d4496ff3ed20ee7b1e9"
+}
+
+import {
+  to = cloudflare_dns_record.chienlt["adguard_oracle"]
+  id = "5f2460ae1b6c01224007c6013a62beb3/8c341e4cf5db419a29935ce54d7faee8"
+}
+
+import {
+  to = cloudflare_dns_record.chienlt["bazarr"]
+  id = "5f2460ae1b6c01224007c6013a62beb3/21e17fd61a3ee4d95512bd455bbdce41"
+}
+
+import {
+  to = cloudflare_dns_record.chienlt["jellyfin"]
+  id = "5f2460ae1b6c01224007c6013a62beb3/f25ade90509448ab3f3dfc0741b9f70a"
+}
+
+import {
+  to = cloudflare_dns_record.chienlt["jellyseerr"]
+  id = "5f2460ae1b6c01224007c6013a62beb3/725faac225d860025c65ce1c71bb7b36"
+}
+
+import {
+  to = cloudflare_dns_record.chienlt["plex"]
+  id = "5f2460ae1b6c01224007c6013a62beb3/1cf23463a03eaa7ed18dd8da5953eaee"
+}
+
+import {
+  to = cloudflare_dns_record.chienlt["amz"]
+  id = "5f2460ae1b6c01224007c6013a62beb3/e9ae2ff809a6f8f1152a1e4fc036930c"
+}

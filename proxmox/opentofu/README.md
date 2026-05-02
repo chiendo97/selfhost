@@ -18,6 +18,8 @@ Current scope:
   imported and plans no changes;
 - the current Proxmox backup job, storage definitions, and Proxmox APT
   repository enablement are imported and plan no changes;
+- current `chienlt.com` Cloudflare DNS records are imported and plan no
+  changes;
 - all guest resources use `prevent_destroy = true`.
 
 OpenTofu does not yet own:
@@ -40,11 +42,13 @@ Use the provider's environment variables:
 ```bash
 export PROXMOX_VE_API_TOKEN='user@realm!tokenid=token-secret'
 export TAILSCALE_API_KEY='tskey-api-...'
+export CLOUDFLARE_API_TOKEN='...'
 ```
 
 Current local setup uses `opentofu@pve!cle-pve-adopt`. The Proxmox token secret
-is in ignored `.env.local` on this workstation only. The Tailscale API key is in
-ignored `../.env`. On `cle-pve`, `opentofu@pve` has:
+is in ignored `.env.local` on this workstation only. The Cloudflare and
+Tailscale provider tokens are also available in ignored `.env.local`; source
+copies remain in ignored `../.env`. On `cle-pve`, `opentofu@pve` has:
 
 ```text
 PVEAuditor
@@ -101,7 +105,7 @@ only source of truth.
 Current local state backup:
 
 ```text
-cle-pve:/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-173553
+cle-pve:/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-181407
 ```
 
 The backup directory is root-owned and mode `0700`. A matching `.sha256` file
@@ -162,6 +166,9 @@ no-op follow-up plan.
 Proxmox backup/storage/APT settings plus selected Tailscale route enablement
 were adopted on 2026-05-02 with 16 imports, 0 added, 0 changed, 0 destroyed, and
 a no-op follow-up plan.
+
+The current `chienlt.com` Cloudflare DNS records were adopted on 2026-05-02
+with 9 imports, 0 added, 0 changed, 0 destroyed, and a no-op follow-up plan.
 
 ## After Adoption
 
@@ -256,6 +263,25 @@ n100: none enabled
 
 Device onboarding, auth keys, device authorization, route advertisement on the
 hosts, and host runtime Tailscale config are still managed outside OpenTofu.
+
+## Cloudflare DNS
+
+OpenTofu tracks the current `chienlt.com` Cloudflare DNS records:
+
+```text
+*.chienlt.com: A 100.81.144.82
+chienlt.com: A 100.104.100.77
+adguard.chienlt.com: A 171.244.62.91
+adguard-oracle.chienlt.com: A 168.138.176.219
+bazarr.chienlt.com: A 171.244.62.91
+jellyfin.chienlt.com: A 171.244.62.91
+jellyseerr.chienlt.com: A 171.244.62.91
+plex.chienlt.com: A 100.81.144.82
+amz.chienlt.com: CNAME 9315ec0b-64d4-4744-a743-7bb0c2e35e45.cfargotunnel.com, proxied
+```
+
+All direct records pointing to tailnet IPs are intentionally unproxied because
+Cloudflare's proxy cannot reach private Tailscale addresses.
 
 ## Proxmox Platform
 

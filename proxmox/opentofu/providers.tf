@@ -6,3 +6,5 @@ provider "proxmox" {
 provider "tailscale" {
   tailnet = "-"
 }
+
+provider "cloudflare" {}
