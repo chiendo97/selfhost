@@ -9,7 +9,7 @@ import {
 }
 
 import {
-  to = proxmox_virtual_environment_container.lxc["pulse"]
+  to = proxmox_virtual_environment_container.pulse
   id = "cle-pve/102"
 }
 

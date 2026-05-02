@@ -1,5 +1,14 @@
 # cle-pve Infrastructure Changelog
 
+## 2026-05-02
+
+- Backed up local OpenTofu state to
+  `/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-093827` on
+  `cle-pve` with a matching SHA256 file.
+- Split CT 102 `pulse` into its own OpenTofu resource as the first low-risk
+  tightening candidate. A trial without `ignore_changes = all` showed provider
+  normalization changes instead of a no-op, so it remains adopt-only for now.
+
 ## 2026-05-01
 
 - Completed main Unraid-to-Proxmox cutover state.

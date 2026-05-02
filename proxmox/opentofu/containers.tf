@@ -1,5 +1,8 @@
 resource "proxmox_virtual_environment_container" "lxc" {
-  for_each = local.lxc_guests
+  for_each = {
+    for name, guest in local.lxc_guests : name => guest
+    if name != "pulse"
+  }
 
   node_name     = local.node_name
   vm_id         = each.value.vm_id
@@ -74,6 +77,67 @@ resource "proxmox_virtual_environment_container" "lxc" {
     order      = each.value.startup_order
     up_delay   = each.value.startup_up_delay
     down_delay = each.value.startup_down_delay
+  }
+
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes  = all
+  }
+}
+
+resource "proxmox_virtual_environment_container" "pulse" {
+  node_name     = local.node_name
+  vm_id         = local.lxc_guests.pulse.vm_id
+  description   = local.lxc_guests.pulse.description
+  tags          = local.lxc_guests.pulse.tags
+  started       = true
+  start_on_boot = true
+  unprivileged  = local.lxc_guests.pulse.unprivileged
+
+  cpu {
+    cores = local.lxc_guests.pulse.cores
+  }
+
+  memory {
+    dedicated = local.lxc_guests.pulse.memory
+    swap      = local.lxc_guests.pulse.swap
+  }
+
+  disk {
+    datastore_id = local.lxc_guests.pulse.rootfs_datastore
+    size         = local.lxc_guests.pulse.rootfs_size
+  }
+
+  initialization {
+    hostname = local.lxc_guests.pulse.hostname
+
+    ip_config {
+      ipv4 {
+        address = "dhcp"
+      }
+    }
+  }
+
+  network_interface {
+    name        = "eth0"
+    bridge      = "vmbr0"
+    mac_address = local.lxc_guests.pulse.mac_address
+  }
+
+  operating_system {
+    template_file_id = var.default_lxc_template_file_id
+    type             = "debian"
+  }
+
+  features {
+    nesting = local.lxc_guests.pulse.features.nesting
+    keyctl  = local.lxc_guests.pulse.features.keyctl
+    fuse    = local.lxc_guests.pulse.features.fuse
+  }
+
+  startup {
+    order    = local.lxc_guests.pulse.startup_order
+    up_delay = local.lxc_guests.pulse.startup_up_delay
   }
 
   lifecycle {

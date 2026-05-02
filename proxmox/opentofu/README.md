@@ -66,6 +66,15 @@ terraform.tfstate
 Move state to a backed-up or remote backend before relying on OpenTofu as the
 only source of truth.
 
+Current local state backup:
+
+```text
+cle-pve:/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-093827
+```
+
+The backup directory is root-owned and mode `0700`. A matching `.sha256` file
+exists next to the state backup.
+
 ## First Adoption
 
 Run from this directory:
@@ -121,3 +130,9 @@ Once the imported state is stable, tighten ownership one guest class at a time:
 4. Repeat for the next guest.
 
 Do not start with guests that have bind mounts or iGPU passthrough.
+
+`pulse` is the first low-risk tightening candidate. It has no bind mounts or
+device passthrough, so it is split into its own resource. The first trial without
+`ignore_changes = all` showed provider normalization changes instead of a no-op,
+so `pulse` stays adopt-only until we intentionally grant a write-capable token or
+adjust the HCL to match provider state exactly.
