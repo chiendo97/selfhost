@@ -83,17 +83,19 @@ after the app LXCs so Traefik and Homepage come up after their LAN backends.
 ## IaC
 
 OpenTofu adoption has started under `proxmox/opentofu` in this repo. All current
-LXCs, both NixOS VMs, and the Tailscale tailnet policy are now imported and plan
-no changes.
+LXCs, both NixOS VMs, the Tailscale tailnet policy, Tailscale DNS config, and
+stable Tailscale device tags/key-expiry settings are now imported and plan no
+changes.
 
 Local OpenTofu state on this workstation has imported all 9 active guests plus
-the live Tailscale policy and verified a no-op follow-up plan. The state file
-and local token env files are ignored by git.
+the live Tailscale policy, DNS config, and stable device settings, then verified
+a no-op follow-up plan. The state file and local token env files are ignored by
+git.
 
 A copy of the local state is backed up on `cle-pve`:
 
 ```text
-/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-145517
+/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-165000
 ```
 
 Proxmox has user/token `opentofu@pve!cle-pve-adopt` for this adoption layer.
@@ -126,10 +128,23 @@ OpenTofu manages the full Tailscale policy from
 `proxmox/opentofu/tailscale-policy.hujson`. Manual ACL edits in the Tailscale
 admin console or API will drift until copied back into that file.
 
+OpenTofu also manages Tailscale DNS as a full tailnet DNS resource:
+
+```text
+MagicDNS: true
+Override local DNS: true
+Nameservers: 100.107.99.32, 100.79.39.73, 1.1.1.1
+Search paths: none
+```
+
+The current stable Tailscale device tag/key-expiry resources cover
+`cle_viettel`, `homelab_pve`, `jellyfin_pve`, `n100`, `oracle`, and
+`selfhost_pve`.
+
 OpenTofu does not yet enforce ZFS datasets, Proxmox storage definitions, backup
-jobs, app config, host-level service wiring, or Tailscale device lifecycle/auth
-keys. Current LXC bind mounts and device passthrough are represented in
-OpenTofu and plan cleanly.
+jobs, app config, host-level service wiring, or Tailscale device
+lifecycle/auth-key/device-authorization/subnet-route workflows. Current LXC
+bind mounts and device passthrough are represented in OpenTofu and plan cleanly.
 
 Targeted ignores remain for LXC `operating_system[0].template_file_id`, because
 the provider requires a template for create but imported containers do not keep

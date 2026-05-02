@@ -12,6 +12,8 @@ Current scope:
   blanket `ignore_changes = all`;
 - the live Tailscale tailnet policy is imported and managed from
   `tailscale-policy.hujson`;
+- Tailscale DNS config, stable infra device tags, and stable infra key-expiry
+  settings are imported and plan no changes;
 - all guest resources use `prevent_destroy = true`.
 
 OpenTofu does not yet own:
@@ -19,7 +21,8 @@ OpenTofu does not yet own:
 - ZFS pools or datasets;
 - Proxmox storage definitions;
 - backup jobs;
-- Tailscale device lifecycle, auth keys, or device tags;
+- Tailscale device lifecycle, auth keys, device authorization, or subnet/exit
+  routes;
 - NixOS, Home Manager, Docker, Traefik, Homepage, or app config.
 
 Those stay in the current manual/docs flow until the later Ansible layer is
@@ -87,7 +90,7 @@ only source of truth.
 Current local state backup:
 
 ```text
-cle-pve:/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-145517
+cle-pve:/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-165000
 ```
 
 The backup directory is root-owned and mode `0700`. A matching `.sha256` file
@@ -141,6 +144,10 @@ This was completed locally on 2026-05-01: 9 guests imported, 0 added, 0 changed,
 The Tailscale ACL resource was adopted on 2026-05-02 with one import, 0 added,
 0 changed, 0 destroyed, and a no-op follow-up plan.
 
+Tailscale DNS config plus stable device tags and key-expiry settings were
+adopted on 2026-05-02 with 13 imports, 0 added, 0 changed, 0 destroyed, and a
+no-op follow-up plan.
+
 ## After Adoption
 
 The current LXC tightening pass is complete. All current LXCs plan no changes
@@ -189,7 +196,7 @@ Targeted VM ignores remain:
 - VM 121 `keyboard_layout` and `agent[0].type`, because normalizing those
   provider defaults previously caused the provider to request VM shutdown.
 
-## Tailscale Policy
+## Tailscale Ownership
 
 `tailscale_acl.policy` manages the full tailnet policy from:
 
@@ -202,5 +209,27 @@ through the API will show as drift on the next `tofu plan`; if those edits are
 intended, pull them back into `tailscale-policy.hujson` before applying other
 OpenTofu changes.
 
-The resource only manages the policy file. Device onboarding, auth keys, device
-tags, and host runtime Tailscale config are still managed outside OpenTofu.
+`tailscale_dns_configuration.main` manages the full tailnet DNS config:
+
+```text
+MagicDNS: true
+Override local DNS: true
+Nameservers: 100.107.99.32, 100.79.39.73, 1.1.1.1
+Search paths: none
+```
+
+The provider currently warns that `tailscale_dns_configuration` is alpha.
+
+OpenTofu also manages tags and key-expiry settings for these stable devices:
+
+```text
+cle_viettel
+homelab_pve
+jellyfin_pve
+n100
+oracle
+selfhost_pve
+```
+
+Device onboarding, auth keys, device authorization, subnet/exit routes, and host
+runtime Tailscale config are still managed outside OpenTofu.

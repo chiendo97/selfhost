@@ -57,6 +57,12 @@
 - Backed up the updated local OpenTofu state to
   `/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-145517` with
   a matching SHA256 file.
+- Imported Tailscale DNS config plus stable device tags/key-expiry settings for
+  `cle_viettel`, `homelab_pve`, `jellyfin_pve`, `n100`, `oracle`, and
+  `selfhost_pve` into OpenTofu with 13 imports and no live changes.
+- Backed up the updated local OpenTofu state to
+  `/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-165000` with
+  a matching SHA256 file.
 
 ## 2026-05-01
 
