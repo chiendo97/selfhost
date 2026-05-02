@@ -8,10 +8,8 @@ setup.
 Current scope:
 
 - all existing guests are imported into local OpenTofu state;
-- all current LXCs and VM 101 `homelab-pve` are tightened and plan no changes
-  without blanket `ignore_changes = all`;
-- VM 121 `selfhost-pve` is still adopt-only with blanket
-  `ignore_changes = all`;
+- all current LXCs and both NixOS VMs are tightened and plan no changes without
+  blanket `ignore_changes = all`;
 - all guest resources use `prevent_destroy = true`.
 
 OpenTofu does not yet own:
@@ -42,6 +40,7 @@ has:
 PVEAuditor
 OpenTofuAdoptDisk
 OpenTofuHomelabManage on /vms/101
+OpenTofuSelfhostManage on /vms/121
 OpenTofuPulseManage on /vms/102
 OpenTofuPlexManage on /vms/110
 OpenTofuJellyfinManage on /vms/111
@@ -58,10 +57,10 @@ The CT-scoped manage roles only add `VM.Audit,VM.Config.Options`, which was
 enough to apply provider normalization for the current LXCs without broad VM
 admin privileges.
 
-`OpenTofuHomelabManage` adds
-`VM.Audit,VM.Config.Disk,VM.Config.Options,VM.GuestAgent.Audit` on `/vms/101`.
-It intentionally does not include `VM.PowerMgmt`, so this OpenTofu token cannot
-shut down or restart `homelab-pve`.
+The VM-scoped manage roles add
+`VM.Audit,VM.Config.Disk,VM.Config.Options,VM.GuestAgent.Audit` on their VM
+paths. They intentionally do not include `VM.PowerMgmt`, so this OpenTofu token
+cannot shut down or restart the NixOS VMs.
 
 The default endpoint is:
 
@@ -84,7 +83,7 @@ only source of truth.
 Current local state backup:
 
 ```text
-cle-pve:/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-102758
+cle-pve:/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-115927
 ```
 
 The backup directory is root-owned and mode `0700`. A matching `.sha256` file
@@ -150,11 +149,13 @@ without blanket `ignore_changes = all`:
 115 backup-pve
 ```
 
-VM 101 `homelab-pve` has also been split into its own tightened resource and
-plans no changes without blanket `ignore_changes = all`.
+Both NixOS VMs have also been split into dedicated tightened resources and plan
+no changes without blanket `ignore_changes = all`:
 
-VM 121 `selfhost-pve` still uses blanket `ignore_changes = all` and is the next
-OpenTofu tightening candidate.
+```text
+101 homelab-pve
+121 selfhost-pve
+```
 
 OpenTofu owns the normal provider-visible LXC inventory fields, including CPU,
 memory, rootfs size, mounts, device passthrough, network, startup order, and
@@ -172,6 +173,11 @@ Each tightened LXC has a CT-scoped Proxmox role with
 `VM.Audit,VM.Config.Options` so OpenTofu can apply provider normalization without
 granting broad VM admin privileges.
 
-VM 101 keeps a targeted ignore for `disk[0].path_in_datastore`, because that is
-provider/import metadata for the existing disk rather than desired
-configuration.
+Targeted VM ignores remain:
+
+- `disk[0].path_in_datastore`, because that is provider/import metadata for the
+  existing disk rather than desired configuration.
+- VM 121 `description`, because the live NixOS-generated description includes a
+  leading space.
+- VM 121 `keyboard_layout` and `agent[0].type`, because normalizing those
+  provider defaults previously caused the provider to request VM shutdown.

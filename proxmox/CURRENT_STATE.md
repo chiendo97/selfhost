@@ -83,9 +83,8 @@ after the app LXCs so Traefik and Homepage come up after their LAN backends.
 ## IaC
 
 OpenTofu adoption has started under `proxmox/opentofu` in this repo. All current
-LXCs and VM 101 `homelab-pve` are now tightened enough for OpenTofu to plan no
-changes without blanket `ignore_changes = all`. VM 121 `selfhost-pve` remains
-adopt-only with blanket `ignore_changes = all`.
+LXCs and both NixOS VMs are now tightened enough for OpenTofu to plan no changes
+without blanket `ignore_changes = all`.
 
 Local OpenTofu state on this workstation has imported all 9 active guests and
 verified a no-op follow-up plan. The state file and local token env file are
@@ -94,7 +93,7 @@ ignored by git.
 A copy of the local state is backed up on `cle-pve`:
 
 ```text
-/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-102758
+/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-115927
 ```
 
 Proxmox has user/token `opentofu@pve!cle-pve-adopt` for this adoption layer.
@@ -118,6 +117,11 @@ VM 101 has VM-scoped role `OpenTofuHomelabManage` with
 include `VM.PowerMgmt`, so the OpenTofu token cannot shut down or restart
 `homelab-pve`.
 
+VM 121 has VM-scoped role `OpenTofuSelfhostManage` with
+`VM.Audit,VM.Config.Disk,VM.Config.Options,VM.GuestAgent.Audit`. It does not
+include `VM.PowerMgmt`, so the OpenTofu token cannot shut down or restart
+`selfhost-pve`.
+
 OpenTofu does not yet enforce ZFS datasets, Proxmox storage definitions, backup
 jobs, app config, or host-level service wiring. Current LXC bind mounts and
 device passthrough are represented in OpenTofu and plan cleanly.
@@ -127,9 +131,14 @@ the provider requires a template for create but imported containers do not keep
 that template in live state. CT 102 also ignores the noisy community-script HTML
 description.
 
-VM 101 keeps a targeted ignore for `disk[0].path_in_datastore`, because that is
-provider/import metadata for the existing disk rather than desired
-configuration.
+Targeted VM ignores remain:
+
+- `disk[0].path_in_datastore`, because that is provider/import metadata for the
+  existing disk rather than desired configuration.
+- VM 121 `description`, because the live NixOS-generated description includes a
+  leading space.
+- VM 121 `keyboard_layout` and `agent[0].type`, because normalizing those
+  provider defaults previously caused the provider to request VM shutdown.
 
 ## Storage
 
@@ -253,7 +262,13 @@ VM 121 Traefik routes local/LXC services:
 | `frigate.chienlt.com` | `http://192.168.50.245:5000` |
 | `kopia.chienlt.com` | `http://192.168.50.53:51515` |
 | `bambuddy.chienlt.com` | `http://100.107.253.59:8000` |
+| `pulse.chienlt.com` | `http://192.168.50.18:7655` |
 | `homepage.chienlt.com` | Homepage container on VM 121 |
+
+Pulse local password auth and API-token auth are disabled on CT 102. VM 121
+Traefik injects Pulse proxy-auth headers for `pulse.chienlt.com`, so the UI
+opens as proxy user `cle`; direct backend access without the proxy secret is
+rejected.
 
 `jellyseerr.chienlt.com` is routed through the external `cle-viettel`
 Traefik path to VM 121 tail IP `100.81.144.82:5056`.

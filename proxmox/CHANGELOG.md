@@ -28,6 +28,19 @@
 - Backed up the updated local OpenTofu state to
   `/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-102758` with
   a matching SHA256 file.
+- Split VM 121 `selfhost-pve` into its own tightened OpenTofu resource and
+  applied only the state address move, with `0 added, 0 changed, 0 destroyed`.
+- Granted `opentofu@pve` a VM-scoped `OpenTofuSelfhostManage` role on
+  `/vms/121` with `VM.Audit`, `VM.Config.Disk`, `VM.Config.Options`, and
+  `VM.GuestAgent.Audit`. `VM.PowerMgmt` was intentionally not granted.
+- Backed up the updated local OpenTofu state to
+  `/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-115927` with
+  a matching SHA256 file.
+- Added VM 121 Traefik route for `pulse.chienlt.com` to CT 102 `pulse` at
+  `192.168.50.18:7655`.
+- Replaced Pulse local password/API-token auth on CT 102 with VM 121
+  Traefik-injected proxy auth for `pulse.chienlt.com`, after backing up the
+  active `/etc/pulse/.env` and `/etc/pulse/api_tokens.json` files.
 
 ## 2026-05-01
 

@@ -4,7 +4,7 @@ import {
 }
 
 import {
-  to = proxmox_virtual_environment_vm.qemu["selfhost_pve"]
+  to = proxmox_virtual_environment_vm.selfhost_pve
   id = "cle-pve/121"
 }
 

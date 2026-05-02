@@ -37,3 +37,8 @@ moved {
   from = proxmox_virtual_environment_vm.qemu["homelab_pve"]
   to   = proxmox_virtual_environment_vm.homelab_pve
 }
+
+moved {
+  from = proxmox_virtual_environment_vm.qemu["selfhost_pve"]
+  to   = proxmox_virtual_environment_vm.selfhost_pve
+}
