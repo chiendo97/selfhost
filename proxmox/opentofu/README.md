@@ -18,6 +18,8 @@ Current scope:
   imported and plans no changes;
 - the current Proxmox backup job, storage definitions, and Proxmox APT
   repository enablement are imported and plan no changes;
+- the Pulse-created Proxmox monitoring identity is imported and protected from
+  destroy;
 - current `chienlt.com` Cloudflare DNS records are imported and plan no
   changes;
 - all guest resources use `prevent_destroy = true`.
@@ -66,6 +68,10 @@ OpenTofuStorageManage on /storage/local
 OpenTofuStorageManage on /storage/local-zfs
 OpenTofuStorageManage on /storage/fast-vm
 OpenTofuStorageManage on /storage/tank-backup
+OpenTofuIdentityManage on /access
+PulseMonitor
+pulse-monitor@pam
+pulse-monitor@pam!pulse-cle-pve-192-168-50-18
 ```
 
 `OpenTofuAdoptDisk` only adds `VM.Config.Disk`, which the provider needs to
@@ -83,6 +89,18 @@ cannot shut down or restart the NixOS VMs.
 `OpenTofuStorageManage` adds `Datastore.Allocate,Datastore.Audit` on each
 adopted storage path. The provider requires `Datastore.Allocate` even to read
 those storage resources.
+
+`OpenTofuIdentityManage` adds `User.Modify` on `/access` so the provider can
+refresh imported Proxmox user-token metadata. It does not include
+`Permissions.Modify`; routine OpenTofu runs cannot change cluster ACL bindings.
+
+`PulseMonitor` is owned for the Pulse monitoring user and contains
+`Datastore.Audit,Sys.Audit,VM.GuestAgent.Audit,VM.GuestAgent.FileRead`.
+`pulse-monitor@pam` also has `PVEAuditor` on `/` and `PVEDatastoreAdmin` on
+`/storage`. Those live ACLs are documented in `identity.tf`, but ACL drift is
+ignored because changing them would require `Permissions.Modify` on `/`. The API
+token resource is imported as metadata only; the token secret is not committed
+to git.
 
 The default endpoint is:
 
@@ -105,7 +123,7 @@ only source of truth.
 Current local state backup:
 
 ```text
-cle-pve:/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-181407
+cle-pve:/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-200900
 ```
 
 The backup directory is root-owned and mode `0700`. A matching `.sha256` file
@@ -291,6 +309,7 @@ OpenTofu tracks the current Proxmox platform-level resources:
 Backup job: nightly-guests
 Storage: local, local-zfs, fast-vm, tank-backup
 APT standard repos: no-subscription enabled; enterprise, test, ceph-squid-enterprise disabled
+Pulse monitoring identity: pulse-monitor@pam, PulseMonitor role, pulse-monitor@pam!pulse-cle-pve-192-168-50-18 token
 ```
 
 `tank-backup` storage prune settings are intentionally not represented in this

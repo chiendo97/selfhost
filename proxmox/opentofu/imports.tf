@@ -119,6 +119,21 @@ import {
 }
 
 import {
+  to = proxmox_virtual_environment_role.pulse_monitor
+  id = "PulseMonitor"
+}
+
+import {
+  to = proxmox_virtual_environment_user.pulse_monitor
+  id = "pulse-monitor@pam"
+}
+
+import {
+  to = proxmox_user_token.pulse_monitor
+  id = "pulse-monitor@pam!pulse-cle-pve-192-168-50-18"
+}
+
+import {
   to = proxmox_storage_directory.local
   id = "local"
 }

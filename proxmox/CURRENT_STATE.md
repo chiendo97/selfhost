@@ -87,17 +87,20 @@ LXCs, both NixOS VMs, the Tailscale tailnet policy, Tailscale DNS config, and
 stable Tailscale device tags/key-expiry/route settings are now imported and
 plan no changes. The current Proxmox backup job, storage definitions, and
 Proxmox APT repository enablement are also imported and plan no changes. Current
-`chienlt.com` Cloudflare DNS records are imported and plan no changes.
+`chienlt.com` Cloudflare DNS records are imported and plan no changes. The
+Pulse-created Proxmox monitoring role, user, and token metadata are imported and
+plan no changes.
 
 Local OpenTofu state on this workstation has imported all 9 active guests plus
 the live Tailscale policy, DNS config, stable device settings, selected route
-settings, platform settings, and Cloudflare DNS records, then verified a no-op
-follow-up plan. The state file and local token env files are ignored by git.
+settings, platform settings, Cloudflare DNS records, and Pulse monitoring
+identity metadata, then verified a no-op follow-up plan. The state file and
+local token env files are ignored by git.
 
 A copy of the local state is backed up on `cle-pve`:
 
 ```text
-/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-181407
+/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-200900
 ```
 
 Proxmox has user/token `opentofu@pve!cle-pve-adopt` for this adoption layer.
@@ -139,6 +142,23 @@ OpenTofu also has storage-scoped role `OpenTofuStorageManage` with
 The provider requires `Datastore.Allocate` even to read/import those storage
 resources.
 
+OpenTofu also has identity-scoped role `OpenTofuIdentityManage` with
+`User.Modify` on `/access` so the provider can refresh imported Proxmox
+user-token metadata. It does not include `Permissions.Modify`, so routine
+OpenTofu runs cannot change cluster ACL bindings.
+
+OpenTofu imports the Pulse monitoring identity:
+
+```text
+PulseMonitor role
+pulse-monitor@pam user
+pulse-monitor@pam!pulse-cle-pve-192-168-50-18 token metadata
+```
+
+The live Pulse ACLs are documented in `proxmox/opentofu/identity.tf`, but ACL
+changes are ignored because applying them would require `Permissions.Modify` on
+`/`.
+
 OpenTofu manages the full Tailscale policy from
 `proxmox/opentofu/tailscale-policy.hujson`. Manual ACL edits in the Tailscale
 admin console or API will drift until copied back into that file.
@@ -170,7 +190,8 @@ runtime, not OpenTofu.
 OpenTofu manages the Proxmox backup job `nightly-guests`, the storage
 definitions `local`, `local-zfs`, `fast-vm`, and `tank-backup`, and Proxmox APT
 repository enablement for `no-subscription`, `enterprise`, `test`, and
-`ceph-squid-enterprise`.
+`ceph-squid-enterprise`. It also imports the Pulse monitoring role, user, and
+token metadata.
 
 OpenTofu also manages current `chienlt.com` Cloudflare DNS records:
 

@@ -49,6 +49,16 @@
   dedicated token auth with `pulse-monitor@pam!pulse-cle-pve-192-168-50-18`.
   Verified Pulse sees one online `cle-pve` host agent with temperature and
   SMART data.
+- Added `OpenTofuIdentityManage` on `/access` for `opentofu@pve` with
+  `User.Modify` so the provider can refresh imported Proxmox user-token
+  metadata without granting `Permissions.Modify`.
+- Added OpenTofu resources and imports for the Pulse monitoring identity:
+  `PulseMonitor`, `pulse-monitor@pam`, and
+  `pulse-monitor@pam!pulse-cle-pve-192-168-50-18`. A follow-up plan verified no
+  changes.
+- Backed up the updated local OpenTofu state to
+  `/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-200900` with
+  a matching SHA256 file.
 - Updated external `cle-viettel` Traefik `bazarr.chienlt.com` backend from old
   `unraid-cle` tail IP to VM 121 `selfhost-pve` tail IP
   `100.81.144.82:6767`.
