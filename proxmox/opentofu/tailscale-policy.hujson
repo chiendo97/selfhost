@@ -19,9 +19,10 @@
 	"hosts": {
 		"cle-viettel-vpn": "100.107.99.32",
 		"oracle":          "100.79.39.73",
-		"unraid-cle":      "100.89.182.96",
 		"ts-mcp":          "100.65.93.82",
 		"n100":            "100.107.253.59",
+		"jellyfin-pve":    "100.111.70.79",
+		"selfhost-pve":    "100.81.144.82",
 	},
 
 	"acls": [
@@ -48,18 +49,6 @@
 				"oracle:80",
 				"oracle:443",
 			],
-		},
-		// --- Monitoring: oracle -> unraid node_exporter ---
-		{
-			"action": "accept",
-			"src":    ["oracle"],
-			"dst":    ["unraid-cle:9100"],
-		},
-		// --- Guest: thao -> unraid full access ---
-		{
-			"action": "accept",
-			"src":    ["nguyenphuongthao9497@gmail.com"],
-			"dst":    ["unraid-cle:*"],
 		},
 	],
 
@@ -107,25 +96,19 @@
 		},
 		{
 			"src": ["host:cle-viettel-vpn"],
-			"dst": ["100.111.70.79"],
+			"dst": ["host:jellyfin-pve"],
 			"ip":  ["*"],
 		},
-		// --- Media: viettel -> unraid jellyfin/bazarr/sonarr ---
+		// --- Media: viettel -> selfhost Jellyseerr ---
 		{
-			"src": ["cle-viettel-vpn"],
-			"dst": ["unraid-cle"],
-			"ip":  ["8096"],
-		},
-		// --- Media: viettel -> unraid jellyfin/bazarr/sonarr ---
-		{
-			"src": ["cle-viettel-vpn"],
-			"dst": ["100.81.144.82"],
+			"src": ["host:cle-viettel-vpn"],
+			"dst": ["host:selfhost-pve"],
 			"ip":  ["5056"],
 		},
 		// --- Media: viettel -> selfhost Bazarr ---
 		{
-			"src": ["cle-viettel-vpn"],
-			"dst": ["100.81.144.82"],
+			"src": ["host:cle-viettel-vpn"],
+			"dst": ["host:selfhost-pve"],
 			"ip":  ["6767"],
 		},
 	],

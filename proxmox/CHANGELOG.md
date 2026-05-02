@@ -52,6 +52,11 @@
 - Backed up the updated local OpenTofu state to
   `/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-130629` with
   a matching SHA256 file.
+- Removed stale `unraid-cle` host mapping and its monitoring, guest, and media
+  grants from the OpenTofu-managed Tailscale policy.
+- Backed up the updated local OpenTofu state to
+  `/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-145517` with
+  a matching SHA256 file.
 
 ## 2026-05-01
 

@@ -93,7 +93,7 @@ and local token env files are ignored by git.
 A copy of the local state is backed up on `cle-pve`:
 
 ```text
-/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-130629
+/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-145517
 ```
 
 Proxmox has user/token `opentofu@pve!cle-pve-adopt` for this adoption layer.

@@ -87,7 +87,7 @@ only source of truth.
 Current local state backup:
 
 ```text
-cle-pve:/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-130629
+cle-pve:/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-145517
 ```
 
 The backup directory is root-owned and mode `0700`. A matching `.sha256` file
