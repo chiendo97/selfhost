@@ -14,31 +14,31 @@ import {
 }
 
 import {
-  to = proxmox_virtual_environment_container.lxc["plex_pve"]
+  to = proxmox_virtual_environment_container.media_igpu_lxc["plex_pve"]
   id = "cle-pve/110"
 }
 
 import {
-  to = proxmox_virtual_environment_container.lxc["jellyfin_pve"]
+  to = proxmox_virtual_environment_container.media_igpu_lxc["jellyfin_pve"]
   id = "cle-pve/111"
 }
 
 import {
-  to = proxmox_virtual_environment_container.lxc["nas_pve"]
+  to = proxmox_virtual_environment_container.nas_pve
   id = "cle-pve/112"
 }
 
 import {
-  to = proxmox_virtual_environment_container.lxc["frigate_pve"]
+  to = proxmox_virtual_environment_container.app_igpu_lxc["frigate_pve"]
   id = "cle-pve/113"
 }
 
 import {
-  to = proxmox_virtual_environment_container.lxc["immich_pve"]
+  to = proxmox_virtual_environment_container.app_igpu_lxc["immich_pve"]
   id = "cle-pve/114"
 }
 
 import {
-  to = proxmox_virtual_environment_container.lxc["backup_pve"]
+  to = proxmox_virtual_environment_container.backup_pve
   id = "cle-pve/115"
 }

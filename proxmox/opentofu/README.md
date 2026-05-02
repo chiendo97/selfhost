@@ -5,22 +5,19 @@ setup.
 
 ## Scope
 
-Current scope is adoption only:
+Current scope:
 
-- import existing VM/LXC guests into local OpenTofu state;
-- keep guest IDs, names, CPU, memory, root disk size, network, and startup
-  metadata documented in HCL;
-- prevent accidental destroy with `prevent_destroy = true`;
-- ignore all live-resource changes with `ignore_changes = all` until adoption
-  is proven safe.
+- all existing guests are imported into local OpenTofu state;
+- all current LXCs are tightened and plan no changes without blanket
+  `ignore_changes = all`;
+- the two NixOS VMs are still adopt-only with blanket `ignore_changes = all`;
+- all guest resources use `prevent_destroy = true`.
 
 OpenTofu does not yet own:
 
 - ZFS pools or datasets;
 - Proxmox storage definitions;
 - backup jobs;
-- LXC bind mounts as an enforcement mechanism;
-- LXC device passthrough as an enforcement mechanism;
 - NixOS, Home Manager, Docker, Traefik, Homepage, or app config.
 
 Those stay in the current manual/docs flow until the later Ansible layer is
@@ -43,10 +40,21 @@ has:
 ```text
 PVEAuditor
 OpenTofuAdoptDisk
+OpenTofuPulseManage on /vms/102
+OpenTofuPlexManage on /vms/110
+OpenTofuJellyfinManage on /vms/111
+OpenTofuNasManage on /vms/112
+OpenTofuFrigateManage on /vms/113
+OpenTofuImmichManage on /vms/114
+OpenTofuBackupManage on /vms/115
 ```
 
 `OpenTofuAdoptDisk` only adds `VM.Config.Disk`, which the provider needs to
 read imported VM disk metadata.
+
+The CT-scoped manage roles only add `VM.Audit,VM.Config.Options`, which was
+enough to apply provider normalization for the current LXCs without broad VM
+admin privileges.
 
 The default endpoint is:
 
@@ -69,7 +77,7 @@ only source of truth.
 Current local state backup:
 
 ```text
-cle-pve:/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-100707
+cle-pve:/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-101715
 ```
 
 The backup directory is root-owned and mode `0700`. A matching `.sha256` file
@@ -122,24 +130,34 @@ This was completed locally on 2026-05-01: 9 guests imported, 0 added, 0 changed,
 
 ## After Adoption
 
-Once the imported state is stable, tighten ownership one guest class at a time:
+The current LXC tightening pass is complete. All current LXCs plan no changes
+without blanket `ignore_changes = all`:
 
-1. Remove `ignore_changes = all` from one low-risk LXC.
-2. Run `tofu plan`.
-3. If the diff is only expected metadata, apply or adjust the HCL.
-4. Repeat for the next guest.
+```text
+102 pulse
+110 plex-pve
+111 jellyfin-pve
+112 nas-pve
+113 frigate-pve
+114 immich-pve
+115 backup-pve
+```
 
-Do not start with guests that have bind mounts or iGPU passthrough.
+The two NixOS VMs still use blanket `ignore_changes = all` and are the next
+OpenTofu tightening candidates.
 
-`pulse` is the first tightened guest. It has no bind mounts or device
-passthrough, so it is split into its own resource and no longer uses blanket
-`ignore_changes = all`. OpenTofu owns the normal provider-visible inventory
-fields for `pulse`.
+OpenTofu owns the normal provider-visible LXC inventory fields, including CPU,
+memory, rootfs size, mounts, device passthrough, network, startup order, and
+on-boot behavior.
 
-Targeted ignores remain for `pulse`:
+Targeted LXC ignores remain:
 
 - `description`, because the live community-script HTML is noisy and not useful
-  as desired configuration.
+  as desired configuration. This applies only to CT 102 `pulse`.
 - `operating_system[0].template_file_id`, because the provider requires a
   template for create but imported containers do not keep that template in live
   state.
+
+Each tightened LXC has a CT-scoped Proxmox role with
+`VM.Audit,VM.Config.Options` so OpenTofu can apply provider normalization without
+granting broad VM admin privileges.

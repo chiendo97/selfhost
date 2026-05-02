@@ -3,7 +3,7 @@
 ## 2026-05-02
 
 - Backed up local OpenTofu state to
-  `/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-100707` on
+  `/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-101715` on
   `cle-pve` with a matching SHA256 file.
 - Split CT 102 `pulse` into its own OpenTofu resource as the first low-risk
   tightening candidate.
@@ -11,6 +11,15 @@
   with `VM.Audit,VM.Config.Options`, applied the provider normalization for
   `pulse`, and verified a no-op follow-up plan without blanket
   `ignore_changes = all`.
+- Tightened OpenTofu ownership for all remaining LXCs:
+  - `110 plex-pve`
+  - `111 jellyfin-pve`
+  - `112 nas-pve`
+  - `113 frigate-pve`
+  - `114 immich-pve`
+  - `115 backup-pve`
+- Each tightened LXC received a CT-scoped `VM.Audit,VM.Config.Options` role for
+  provider normalization. Follow-up OpenTofu plan verified no changes.
 
 ## 2026-05-01
 

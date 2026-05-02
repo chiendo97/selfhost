@@ -82,10 +82,10 @@ after the app LXCs so Traefik and Homepage come up after their LAN backends.
 
 ## IaC
 
-OpenTofu adoption has started under `proxmox/opentofu` in this repo. Current
-scope is guest inventory import only: VMs/LXCs are declared with
-`prevent_destroy = true` and `ignore_changes = all` until imported state is
-verified clean.
+OpenTofu adoption has started under `proxmox/opentofu` in this repo. All current
+LXCs are now tightened enough for OpenTofu to plan no changes without blanket
+`ignore_changes = all`. The two NixOS VMs remain adopt-only with blanket
+`ignore_changes = all`.
 
 Local OpenTofu state on this workstation has imported all 9 active guests and
 verified a no-op follow-up plan. The state file and local token env file are
@@ -94,22 +94,33 @@ ignored by git.
 A copy of the local state is backed up on `cle-pve`:
 
 ```text
-/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-100707
+/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-101715
 ```
 
 Proxmox has user/token `opentofu@pve!cle-pve-adopt` for this adoption layer.
 The user has `PVEAuditor` plus custom role `OpenTofuAdoptDisk` containing only
 `VM.Config.Disk`.
 
+Each tightened LXC has a CT-scoped role with `VM.Audit,VM.Config.Options`:
+
+| CT | Role |
+|---:|---|
+| 102 | `OpenTofuPulseManage` |
+| 110 | `OpenTofuPlexManage` |
+| 111 | `OpenTofuJellyfinManage` |
+| 112 | `OpenTofuNasManage` |
+| 113 | `OpenTofuFrigateManage` |
+| 114 | `OpenTofuImmichManage` |
+| 115 | `OpenTofuBackupManage` |
+
 OpenTofu does not yet enforce ZFS datasets, Proxmox storage definitions, backup
-jobs, app config, or host/LXC special wiring.
+jobs, app config, or host-level service wiring. Current LXC bind mounts and
+device passthrough are represented in OpenTofu and plan cleanly.
 
-The first tightened guest is CT 102 `pulse`, split into a dedicated OpenTofu
-resource. OpenTofu now plans no changes for `pulse` without blanket
-`ignore_changes = all`; only the noisy community-script description and
-create-time template field are ignored.
-
-Other LXCs still use adopt-only `ignore_changes = all`.
+Targeted ignores remain for LXC `operating_system[0].template_file_id`, because
+the provider requires a template for create but imported containers do not keep
+that template in live state. CT 102 also ignores the noisy community-script HTML
+description.
 
 ## Storage
 
