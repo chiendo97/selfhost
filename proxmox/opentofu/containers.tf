@@ -88,14 +88,15 @@ resource "proxmox_virtual_environment_container" "lxc" {
 resource "proxmox_virtual_environment_container" "pulse" {
   node_name     = local.node_name
   vm_id         = local.lxc_guests.pulse.vm_id
-  description   = local.lxc_guests.pulse.description
   tags          = local.lxc_guests.pulse.tags
   started       = true
   start_on_boot = true
   unprivileged  = local.lxc_guests.pulse.unprivileged
 
-  cpu {
-    cores = local.lxc_guests.pulse.cores
+  console {
+    enabled   = true
+    tty_count = 2
+    type      = "tty"
   }
 
   memory {
@@ -104,8 +105,10 @@ resource "proxmox_virtual_environment_container" "pulse" {
   }
 
   disk {
-    datastore_id = local.lxc_guests.pulse.rootfs_datastore
-    size         = local.lxc_guests.pulse.rootfs_size
+    datastore_id  = local.lxc_guests.pulse.rootfs_datastore
+    mount_options = []
+    replicate     = false
+    size          = local.lxc_guests.pulse.rootfs_size
   }
 
   initialization {
@@ -119,9 +122,15 @@ resource "proxmox_virtual_environment_container" "pulse" {
   }
 
   network_interface {
-    name        = "eth0"
-    bridge      = "vmbr0"
-    mac_address = local.lxc_guests.pulse.mac_address
+    name         = "eth0"
+    bridge       = "vmbr0"
+    enabled      = true
+    firewall     = false
+    host_managed = false
+    mac_address  = local.lxc_guests.pulse.mac_address
+    mtu          = 0
+    rate_limit   = 0
+    vlan_id      = 0
   }
 
   operating_system {
@@ -129,19 +138,17 @@ resource "proxmox_virtual_environment_container" "pulse" {
     type             = "debian"
   }
 
-  features {
-    nesting = local.lxc_guests.pulse.features.nesting
-    keyctl  = local.lxc_guests.pulse.features.keyctl
-    fuse    = local.lxc_guests.pulse.features.fuse
-  }
-
   startup {
-    order    = local.lxc_guests.pulse.startup_order
-    up_delay = local.lxc_guests.pulse.startup_up_delay
+    order      = local.lxc_guests.pulse.startup_order
+    up_delay   = local.lxc_guests.pulse.startup_up_delay
+    down_delay = -1
   }
 
   lifecycle {
     prevent_destroy = true
-    ignore_changes  = all
+    ignore_changes = [
+      description,
+      operating_system[0].template_file_id,
+    ]
   }
 }

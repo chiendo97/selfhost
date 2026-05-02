@@ -69,7 +69,7 @@ only source of truth.
 Current local state backup:
 
 ```text
-cle-pve:/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-093827
+cle-pve:/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-100707
 ```
 
 The backup directory is root-owned and mode `0700`. A matching `.sha256` file
@@ -131,8 +131,15 @@ Once the imported state is stable, tighten ownership one guest class at a time:
 
 Do not start with guests that have bind mounts or iGPU passthrough.
 
-`pulse` is the first low-risk tightening candidate. It has no bind mounts or
-device passthrough, so it is split into its own resource. The first trial without
-`ignore_changes = all` showed provider normalization changes instead of a no-op,
-so `pulse` stays adopt-only until we intentionally grant a write-capable token or
-adjust the HCL to match provider state exactly.
+`pulse` is the first tightened guest. It has no bind mounts or device
+passthrough, so it is split into its own resource and no longer uses blanket
+`ignore_changes = all`. OpenTofu owns the normal provider-visible inventory
+fields for `pulse`.
+
+Targeted ignores remain for `pulse`:
+
+- `description`, because the live community-script HTML is noisy and not useful
+  as desired configuration.
+- `operating_system[0].template_file_id`, because the provider requires a
+  template for create but imported containers do not keep that template in live
+  state.

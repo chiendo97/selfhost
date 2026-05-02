@@ -94,7 +94,7 @@ ignored by git.
 A copy of the local state is backed up on `cle-pve`:
 
 ```text
-/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-093827
+/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-100707
 ```
 
 Proxmox has user/token `opentofu@pve!cle-pve-adopt` for this adoption layer.
@@ -104,10 +104,12 @@ The user has `PVEAuditor` plus custom role `OpenTofuAdoptDisk` containing only
 OpenTofu does not yet enforce ZFS datasets, Proxmox storage definitions, backup
 jobs, app config, or host/LXC special wiring.
 
-The first low-risk tightening candidate is CT 102 `pulse`, split into a
-dedicated OpenTofu resource. A trial without `ignore_changes = all` showed
-provider normalization changes instead of a no-op, so `pulse` and the other LXCs
-remain adopt-only for now.
+The first tightened guest is CT 102 `pulse`, split into a dedicated OpenTofu
+resource. OpenTofu now plans no changes for `pulse` without blanket
+`ignore_changes = all`; only the noisy community-script description and
+create-time template field are ignored.
+
+Other LXCs still use adopt-only `ignore_changes = all`.
 
 ## Storage
 
