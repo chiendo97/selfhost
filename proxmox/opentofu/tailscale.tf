@@ -36,6 +36,23 @@ locals {
       key_expiry_disabled = true
     }
   }
+
+  tailscale_route_devices = {
+    cle_viettel = {
+      node_id = local.tailscale_stable_devices.cle_viettel.node_id
+      routes  = ["0.0.0.0/0", "::/0"]
+    }
+
+    n100 = {
+      node_id = local.tailscale_stable_devices.n100.node_id
+      routes  = []
+    }
+
+    oracle = {
+      node_id = local.tailscale_stable_devices.oracle.node_id
+      routes  = ["0.0.0.0/0", "::/0"]
+    }
+  }
 }
 
 resource "tailscale_acl" "policy" {
@@ -72,4 +89,11 @@ resource "tailscale_device_key" "stable" {
 
   device_id           = each.value.node_id
   key_expiry_disabled = each.value.key_expiry_disabled
+}
+
+resource "tailscale_device_subnet_routes" "stable" {
+  for_each = local.tailscale_route_devices
+
+  device_id = each.value.node_id
+  routes    = each.value.routes
 }

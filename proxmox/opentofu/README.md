@@ -14,15 +14,18 @@ Current scope:
   `tailscale-policy.hujson`;
 - Tailscale DNS config, stable infra device tags, and stable infra key-expiry
   settings are imported and plan no changes;
+- Tailscale subnet/exit route enablement for selected stable infra devices is
+  imported and plans no changes;
+- the current Proxmox backup job, storage definitions, and Proxmox APT
+  repository enablement are imported and plan no changes;
 - all guest resources use `prevent_destroy = true`.
 
 OpenTofu does not yet own:
 
 - ZFS pools or datasets;
-- Proxmox storage definitions;
-- backup jobs;
-- Tailscale device lifecycle, auth keys, device authorization, or subnet/exit
-  routes;
+- host package installation, system services, zram, sysctl, or ZFS dataset
+  properties;
+- Tailscale device lifecycle, auth keys, or device authorization;
 - NixOS, Home Manager, Docker, Traefik, Homepage, or app config.
 
 Those stay in the current manual/docs flow until the later Ansible layer is
@@ -55,6 +58,10 @@ OpenTofuNasManage on /vms/112
 OpenTofuFrigateManage on /vms/113
 OpenTofuImmichManage on /vms/114
 OpenTofuBackupManage on /vms/115
+OpenTofuStorageManage on /storage/local
+OpenTofuStorageManage on /storage/local-zfs
+OpenTofuStorageManage on /storage/fast-vm
+OpenTofuStorageManage on /storage/tank-backup
 ```
 
 `OpenTofuAdoptDisk` only adds `VM.Config.Disk`, which the provider needs to
@@ -68,6 +75,10 @@ The VM-scoped manage roles add
 `VM.Audit,VM.Config.Disk,VM.Config.Options,VM.GuestAgent.Audit` on their VM
 paths. They intentionally do not include `VM.PowerMgmt`, so this OpenTofu token
 cannot shut down or restart the NixOS VMs.
+
+`OpenTofuStorageManage` adds `Datastore.Allocate,Datastore.Audit` on each
+adopted storage path. The provider requires `Datastore.Allocate` even to read
+those storage resources.
 
 The default endpoint is:
 
@@ -90,7 +101,7 @@ only source of truth.
 Current local state backup:
 
 ```text
-cle-pve:/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-165000
+cle-pve:/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-173553
 ```
 
 The backup directory is root-owned and mode `0700`. A matching `.sha256` file
@@ -147,6 +158,10 @@ The Tailscale ACL resource was adopted on 2026-05-02 with one import, 0 added,
 Tailscale DNS config plus stable device tags and key-expiry settings were
 adopted on 2026-05-02 with 13 imports, 0 added, 0 changed, 0 destroyed, and a
 no-op follow-up plan.
+
+Proxmox backup/storage/APT settings plus selected Tailscale route enablement
+were adopted on 2026-05-02 with 16 imports, 0 added, 0 changed, 0 destroyed, and
+a no-op follow-up plan.
 
 ## After Adoption
 
@@ -231,5 +246,28 @@ oracle
 selfhost_pve
 ```
 
-Device onboarding, auth keys, device authorization, subnet/exit routes, and host
-runtime Tailscale config are still managed outside OpenTofu.
+OpenTofu also manages subnet/exit route enablement for:
+
+```text
+cle_viettel: 0.0.0.0/0, ::/0
+oracle: 0.0.0.0/0, ::/0
+n100: none enabled
+```
+
+Device onboarding, auth keys, device authorization, route advertisement on the
+hosts, and host runtime Tailscale config are still managed outside OpenTofu.
+
+## Proxmox Platform
+
+OpenTofu tracks the current Proxmox platform-level resources:
+
+```text
+Backup job: nightly-guests
+Storage: local, local-zfs, fast-vm, tank-backup
+APT standard repos: no-subscription enabled; enterprise, test, ceph-squid-enterprise disabled
+```
+
+`tank-backup` storage prune settings are intentionally not represented in this
+first storage adoption because the provider wanted to rewrite them even though
+the live storage already has matching retention. Guest backup retention is still
+represented on `proxmox_backup_job.nightly_guests`.

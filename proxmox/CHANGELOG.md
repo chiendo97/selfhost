@@ -63,6 +63,15 @@
 - Backed up the updated local OpenTofu state to
   `/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-165000` with
   a matching SHA256 file.
+- Added storage-scoped `OpenTofuStorageManage` on `local`, `local-zfs`,
+  `fast-vm`, and `tank-backup` because the provider requires
+  `Datastore.Allocate` to read/import storage resources.
+- Imported Proxmox backup job `nightly-guests`, Proxmox storage definitions,
+  Proxmox APT repository enablement, and selected Tailscale route enablement
+  into OpenTofu with 16 imports and no live changes.
+- Backed up the updated local OpenTofu state to
+  `/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-173553` with
+  a matching SHA256 file.
 
 ## 2026-05-01
 

@@ -84,18 +84,19 @@ after the app LXCs so Traefik and Homepage come up after their LAN backends.
 
 OpenTofu adoption has started under `proxmox/opentofu` in this repo. All current
 LXCs, both NixOS VMs, the Tailscale tailnet policy, Tailscale DNS config, and
-stable Tailscale device tags/key-expiry settings are now imported and plan no
-changes.
+stable Tailscale device tags/key-expiry/route settings are now imported and
+plan no changes. The current Proxmox backup job, storage definitions, and
+Proxmox APT repository enablement are also imported and plan no changes.
 
 Local OpenTofu state on this workstation has imported all 9 active guests plus
-the live Tailscale policy, DNS config, and stable device settings, then verified
-a no-op follow-up plan. The state file and local token env files are ignored by
-git.
+the live Tailscale policy, DNS config, stable device settings, selected route
+settings, and platform settings, then verified a no-op follow-up plan. The state
+file and local token env files are ignored by git.
 
 A copy of the local state is backed up on `cle-pve`:
 
 ```text
-/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-165000
+/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-173553
 ```
 
 Proxmox has user/token `opentofu@pve!cle-pve-adopt` for this adoption layer.
@@ -124,6 +125,19 @@ VM 121 has VM-scoped role `OpenTofuSelfhostManage` with
 include `VM.PowerMgmt`, so the OpenTofu token cannot shut down or restart
 `selfhost-pve`.
 
+OpenTofu also has storage-scoped role `OpenTofuStorageManage` with
+`Datastore.Allocate,Datastore.Audit` on:
+
+```text
+/storage/local
+/storage/local-zfs
+/storage/fast-vm
+/storage/tank-backup
+```
+
+The provider requires `Datastore.Allocate` even to read/import those storage
+resources.
+
 OpenTofu manages the full Tailscale policy from
 `proxmox/opentofu/tailscale-policy.hujson`. Manual ACL edits in the Tailscale
 admin console or API will drift until copied back into that file.
@@ -141,10 +155,26 @@ The current stable Tailscale device tag/key-expiry resources cover
 `cle_viettel`, `homelab_pve`, `jellyfin_pve`, `n100`, `oracle`, and
 `selfhost_pve`.
 
-OpenTofu does not yet enforce ZFS datasets, Proxmox storage definitions, backup
-jobs, app config, host-level service wiring, or Tailscale device
-lifecycle/auth-key/device-authorization/subnet-route workflows. Current LXC
-bind mounts and device passthrough are represented in OpenTofu and plan cleanly.
+OpenTofu also manages selected Tailscale route enablement:
+
+```text
+cle_viettel: 0.0.0.0/0, ::/0
+oracle: 0.0.0.0/0, ::/0
+n100: none enabled
+```
+
+Route advertisement on each host is still configured by the host Tailscale
+runtime, not OpenTofu.
+
+OpenTofu manages the Proxmox backup job `nightly-guests`, the storage
+definitions `local`, `local-zfs`, `fast-vm`, and `tank-backup`, and Proxmox APT
+repository enablement for `no-subscription`, `enterprise`, `test`, and
+`ceph-squid-enterprise`.
+
+OpenTofu does not yet enforce ZFS datasets, host package installation, system
+services, zram/sysctl, app config, host-level service wiring, or Tailscale
+device lifecycle/auth-key/device-authorization workflows. Current LXC bind
+mounts and device passthrough are represented in OpenTofu and plan cleanly.
 
 Targeted ignores remain for LXC `operating_system[0].template_file_id`, because
 the provider requires a template for create but imported containers do not keep
