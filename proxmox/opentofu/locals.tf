@@ -53,7 +53,9 @@ locals {
       unprivileged       = true
       features           = { nesting = true, keyctl = true, fuse = false }
       mount_points       = []
-      devices            = []
+      devices = [
+        { path = "/dev/net/tun", gid = null, mode = "0666" },
+      ]
     }
 
     plex_pve = {

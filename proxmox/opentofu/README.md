@@ -268,6 +268,7 @@ homelab_pve
 jellyfin_pve
 n100
 oracle
+pulse_pve
 selfhost_pve
 ```
 

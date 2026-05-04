@@ -30,6 +30,12 @@ locals {
       key_expiry_disabled = true
     }
 
+    pulse_pve = {
+      node_id             = "n4Y4Fn4TA611CNTRL"
+      tags                = ["tag:server"]
+      key_expiry_disabled = true
+    }
+
     selfhost_pve = {
       node_id             = "nxFxxZ5oC311CNTRL"
       tags                = ["tag:trusted"]

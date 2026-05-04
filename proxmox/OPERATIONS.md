@@ -133,6 +133,14 @@ curl -fsS -H 'Accept: application/json' -H 'X-Requested-With: XMLHttpRequest' ht
 ssh cle-pve 'pct exec 102 -- stat -c "%a %U:%G %n" /etc/pulse/webhooks.enc'
 ```
 
+Pulse LXC Tailscale checks:
+
+```bash
+ssh cle-pve 'pct exec 102 -- sh -lc '\''tailscale status --json | jq "{host:.Self.HostName,dns:.Self.DNSName,ips:.Self.TailscaleIPs,tags:.Self.Tags,online:.Self.Online}"'\'''
+ssh cle-pve 'pct exec 102 -- sh -lc "ls -l /dev/net/tun; systemctl is-active tailscaled pulse"'
+curl -fsS -I --max-time 8 http://100.86.86.121:7655/ | sed -n '1,5p'
+```
+
 Dozzle remote agent checks:
 
 ```bash

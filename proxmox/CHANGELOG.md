@@ -2,6 +2,16 @@
 
 ## 2026-05-04
 
+- Raised Pulse host-agent SMART disk temperature alerting from `60/55 C` to
+  `65/60 C` after `cle-pve` disk `sde` reached the previous `60 C` warning
+  threshold. Pulse auto-resolved the active disk-temperature alert after the
+  config reload. A live backup was written on CT 102 as
+  `/etc/pulse/alerts.json.backup-disktemp-20260504-085255`.
+- Installed Tailscale `1.96.4` in CT 102 `pulse`, added `/dev/net/tun`
+  passthrough for normal LXC tunnel mode, joined it as `pulse-pve` with
+  `tag:server`, and imported the new Tailscale tag/key-expiry resources into
+  OpenTofu. The tailnet address is `100.86.86.121` and the Proxmox LXC config
+  backup is `/root/lxc-102.conf.bak-tailscale-20260504-133008` on `cle-pve`.
 - Raised Pulse host-agent SMART disk temperature alerting from `55/50 C` to
   `60/55 C` after `cle-pve` disks hovered around `55-58 C`; existing active
   disk-temperature alerts cleared after the config update. A live backup was

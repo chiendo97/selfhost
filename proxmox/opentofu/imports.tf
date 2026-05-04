@@ -79,6 +79,11 @@ import {
 }
 
 import {
+  to = tailscale_device_tags.stable["pulse_pve"]
+  id = "n4Y4Fn4TA611CNTRL"
+}
+
+import {
   to = tailscale_device_tags.stable["selfhost_pve"]
   id = "nxFxxZ5oC311CNTRL"
 }
@@ -106,6 +111,11 @@ import {
 import {
   to = tailscale_device_key.stable["oracle"]
   id = "nWvSuVVhZ321CNTRL"
+}
+
+import {
+  to = tailscale_device_key.stable["pulse_pve"]
+  id = "n4Y4Fn4TA611CNTRL"
 }
 
 import {

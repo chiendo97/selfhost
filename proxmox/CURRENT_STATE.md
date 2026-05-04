@@ -186,8 +186,8 @@ Search paths: none
 ```
 
 The current stable Tailscale device tag/key-expiry resources cover
-`cle_viettel`, `homelab_pve`, `jellyfin_pve`, `n100`, `oracle`, and
-`selfhost_pve`.
+`cle_viettel`, `homelab_pve`, `jellyfin_pve`, `n100`, `oracle`, `pulse_pve`,
+and `selfhost_pve`.
 
 OpenTofu also manages selected Tailscale route enablement:
 
@@ -370,14 +370,20 @@ VM 121 Traefik routes local/LXC services:
 
 Pulse local password auth is disabled on CT 102. VM 121 Traefik injects Pulse
 proxy-auth headers for `pulse.chienlt.com`, so the UI opens as proxy user
-`cle`; direct backend access without the proxy secret is rejected. Pulse API
-token auth remains enabled for agents.
+`cle`. Direct backend or tailnet access can load the UI shell, but
+authenticated API calls are not proxy-authenticated without the Traefik headers.
+Pulse API token auth remains enabled for agents.
+
+CT 102 also runs Tailscale `1.96.4` as `pulse-pve.tail148f9.ts.net`, tagged
+`tag:server`, with tailnet address `100.86.86.121`. The LXC has
+`/dev/net/tun` passthrough so Tailscale runs in normal tunnel mode. Tailscale
+tags and key-expiry settings for `pulse_pve` are imported into OpenTofu.
 
 Pulse alert notifications are active. CT 102 stores the enabled `Telegram
 Alerts` webhook encrypted at `/etc/pulse/webhooks.enc`; the Telegram bot token
 and chat ID are sourced from local `.env.local` during setup and are not stored
-in the repo. Host-agent SMART disk temperature alerts trigger at `60 C` and
-clear at `55 C`.
+in the repo. Host-agent SMART disk temperature alerts trigger at `65 C` and
+clear at `60 C`.
 
 `cle-pve` runs `pulse-agent.service` from `/usr/local/bin/pulse-agent`, pointing
 at `http://192.168.50.18:7655` with host metrics enabled, Docker/Kubernetes
