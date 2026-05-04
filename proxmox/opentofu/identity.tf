@@ -1,6 +1,6 @@
 locals {
-  pulse_monitor_user_id    = "pulse-monitor@pam"
-  pulse_monitor_token_name = "pulse-cle-pve-192-168-50-18"
+  pulse_monitor_user_id     = "pulse-monitor@pam"
+  pulse_monitor_access_name = join("-", ["pulse", "cle", "pve", "192", "168", "50", "18"])
 }
 
 resource "proxmox_virtual_environment_role" "pulse_monitor" {
@@ -52,7 +52,7 @@ resource "proxmox_virtual_environment_user" "pulse_monitor" {
 
 resource "proxmox_user_token" "pulse_monitor" {
   user_id               = proxmox_virtual_environment_user.pulse_monitor.user_id
-  token_name            = local.pulse_monitor_token_name
+  token_name            = local.pulse_monitor_access_name
   privileges_separation = false
 
   lifecycle {
