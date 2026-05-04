@@ -525,8 +525,18 @@ currently resolve to tailnet addresses, not the public VPS IP.
 - Traefik publishes only public `80/tcp` and `443/tcp`; the insecure dashboard
   API is disabled with `--api.insecure=false`, and `8080/tcp` is not published.
 - `adguard.chienlt.com` resolves to the `cle-viettel` Tailscale address
-  `100.107.99.32`. The `cle-viettel` Traefik `adguard-rtr` router and backend
-  service were removed.
+  `100.107.99.32`. Traefik serves it through `adguard-rtr` with
+  `adguard-tailnet-chain`, which allowlists Tailscale source addresses plus the
+  local Docker gateway source observed for tailnet HTTPS, applies the CrowdSec
+  bouncer, and adds basic security headers. The backend is
+  `http://100.107.99.32:82`; forced public-IP requests with the AdGuard host
+  header return HTTP 403.
+- AdGuard Home persistent clients are maintained from current Tailscale
+  MagicDNS names and `100.x` addresses. As of the latest sync, the UI reports 16
+  persistent clients: `apple-tv`, `aws-urieljsc`, `cle-cloudfly`,
+  `cle-viettel-vpn`, `homelab-pve`, `ipad161`, `iphone-15`, `iphone184`,
+  `jellyfin-pve`, `les-laptop`, `n100-do4vk2q3njq`, `oracle`, `pulse-pve`,
+  `selfhost-pve`, `unraid-cle`, and `unraid-w11`.
 - `docker-user-firewall.service` installs a persistent `DOCKER-USER` guard
   chain that allows Docker-published public traffic from `eth0` only to
   `80/tcp` and `443/tcp`, then drops other Docker-published public ports.

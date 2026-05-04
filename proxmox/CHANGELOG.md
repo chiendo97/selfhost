@@ -13,9 +13,15 @@
   `/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260504-214447`.
 - Updated the OpenTofu-managed `adguard.chienlt.com` Cloudflare record from the
   `cle-viettel` public IP to the `cle-viettel` Tailscale IP `100.107.99.32`.
-- Removed the `adguard.chienlt.com` public Traefik router from
-  `cle-viettel`; before the DNS record moved to the tailnet IP, the public host
-  returned Traefik 404 instead of proxying AdGuard.
+- Re-added the `adguard.chienlt.com` Traefik router after the DNS record moved
+  to the tailnet IP. The router uses `adguard-tailnet-chain` with a Tailscale
+  source allowlist, CrowdSec bouncer, and basic security headers, and proxies to
+  AdGuard at `http://100.107.99.32:82`. Verified normal tailnet HTTPS returns
+  the AdGuard login redirect while a forced public-IP request returns HTTP 403.
+- Updated live AdGuard Home persistent clients on `cle-viettel` to match the
+  current Tailscale MagicDNS names and `100.x` addresses for 16 devices. The
+  runtime config backup is
+  `/opt/AdGuardHome/AdGuardHome.yaml.bak-20260504-141034-tailscale-clients`.
 - Installed CrowdSec `1.7.7` on `cle-viettel`, configured Traefik access-log
   acquisition from `/root/Source/traefik/logs/access.log`, installed the
   `crowdsecurity/traefik` collection, and created the `traefik-media` bouncer
