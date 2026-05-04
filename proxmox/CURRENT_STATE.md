@@ -1,6 +1,6 @@
 # cle-pve Current State
 
-Last verified: 2026-05-02.
+Last verified: 2026-05-04.
 
 ## Host
 
@@ -58,10 +58,14 @@ The NixOS VMs use in-guest zram swap from their dotfiles NixOS configs:
 | VM | RAM | zram swap |
 |---:|---:|---:|
 | 101 `homelab-pve` | 8G | ~8G |
-| 121 `selfhost-pve` | 12G | ~12G |
+| 121 `selfhost-pve` | 8G | ~8G |
 
 This is guest-local compressed swap. It does not create an NVMe swap partition
 or swapfile.
+
+VM 121 `selfhost-pve` has virtio balloon statistics enabled with the balloon
+target equal to the full 8G allocation. This is for Proxmox memory reporting,
+not for shrinking the VM below 8G during normal operation.
 
 ## Boot Order
 
@@ -125,9 +129,9 @@ include `VM.PowerMgmt`, so the OpenTofu token cannot shut down or restart
 `homelab-pve`.
 
 VM 121 has VM-scoped role `OpenTofuSelfhostManage` with
-`VM.Audit,VM.Config.Disk,VM.Config.Options,VM.GuestAgent.Audit`. It does not
-include `VM.PowerMgmt`, so the OpenTofu token cannot shut down or restart
-`selfhost-pve`.
+`VM.Audit,VM.Config.Disk,VM.Config.Memory,VM.Config.Options,VM.GuestAgent.Audit`.
+It does not include `VM.PowerMgmt`, so the OpenTofu token cannot shut down or
+restart `selfhost-pve`.
 
 OpenTofu also has storage-scoped role `OpenTofuStorageManage` with
 `Datastore.Allocate,Datastore.Audit` on:
@@ -200,6 +204,18 @@ n100: none enabled
 Route advertisement on each host is still configured by the host Tailscale
 runtime, not OpenTofu.
 
+The OpenTofu-managed policy grants `cle-viettel-vpn` only the service ports it
+needs for external media ingress:
+
+```text
+jellyfin-pve:8096
+selfhost-pve:5056
+selfhost-pve:6767
+```
+
+Policy tests deny `cle-viettel-vpn` access to Jellyfin SSH, Dozzle agent, and
+other non-service ports.
+
 OpenTofu manages the Proxmox backup job `nightly-guests`, the storage
 definitions `local`, `local-zfs`, `fast-vm`, and `tank-backup`, and Proxmox APT
 repository enablement for `no-subscription`, `enterprise`, `test`, and
@@ -211,7 +227,7 @@ OpenTofu also manages current `chienlt.com` Cloudflare DNS records:
 ```text
 *.chienlt.com -> 100.81.144.82
 chienlt.com -> 100.104.100.77
-adguard.chienlt.com -> 171.244.62.91
+adguard.chienlt.com -> 100.107.99.32
 adguard-oracle.chienlt.com -> 168.138.176.219
 bazarr.chienlt.com -> 171.244.62.91
 jellyfin.chienlt.com -> 171.244.62.91
@@ -415,15 +431,34 @@ and talks only to the rootless Podman socket at
 enabled; Kubernetes and Proxmox collection are disabled. Pulse lists it as
 hostname `n100` in Hosts and as agent ID `n100-podman` in Docker hosts.
 
+Remote tailnet hosts run Pulse `v5.1.29` agents as root systemd services,
+pointing at the Pulse LXC tailnet endpoint `http://100.86.86.121:7655`. Their
+tokens are stored root-only at `/var/lib/pulse-agent/token`, auto-update and
+command execution are disabled, and the local health listener is bound to
+`127.0.0.1:9191`.
+
+```text
+cle-viettel-vpn  hostname cle-viettel   agent-id cle-viettel-docker  host + Docker
+cle-cloudfly     hostname cle-cloudfly  agent-id cle-cloudfly-host   host only
+oracle           hostname oracle        agent-id oracle-host         host only
+```
+
+The OpenTofu-managed Tailscale policy allows only these three hosts to reach
+`pulse-pve:7655` for agent reporting. It does not grant SSH, HTTPS, or other
+Pulse LXC ports.
+
 Each Docker Pulse agent has a separate API token with `docker:report`,
 `host-agent:config:read`, and `host-agent:report` scopes. The compose
 healthcheck is disabled because the public Pulse image carries the server
 healthcheck, while these containers run only the agent binary.
+Remote host-only agents use separate tokens with only `host-agent:report` and
+`host-agent:config:read`; `cle-viettel` additionally has `docker:report`.
 
 ```text
 LXC tokens:          /opt/pulse-agent/token
 selfhost-pve token:  /srv/selfhost/pulse-agent/token
 N100 token:          ~/.config/pulse-agent/token
+remote host tokens:  /var/lib/pulse-agent/token
 ```
 
 VM 121 also runs the central Dozzle UI in `/srv/selfhost/docker-compose.yml`.
@@ -453,16 +488,56 @@ The old `root@pam` password-backed Pulse node config has been replaced. The
 `PVEDatastoreAdmin` on `/storage` for monitoring, guest-agent/storage visibility,
 and backup visibility.
 
-These routes are served by the external `cle-viettel` Traefik path to VM 121
-over Tailscale:
+These routes are served by the external `cle-viettel` Traefik path over
+Tailscale:
 
 | Public host | Backend |
 |---|---|
+| `jellyfin.chienlt.com` | `http://100.111.70.79:8096` |
 | `jellyseerr.chienlt.com` | `http://100.81.144.82:5056` |
 | `bazarr.chienlt.com` | `http://100.81.144.82:6767` |
+| `plex.chienlt.com` | `http://100.104.100.77:32400` |
+| `timthuoc.chienlt.com` | `http://100.67.251.63:8501` |
 
-The OpenTofu-managed tailnet policy grants `cle-viettel-vpn` access to those VM
-121 ports.
+The OpenTofu-managed tailnet policy grants `cle-viettel-vpn` only the required
+Jellyfin and VM 121 media ports. `plex.chienlt.com` and `timthuoc.chienlt.com`
+currently resolve to tailnet addresses, not the public VPS IP.
+
+`cle-viettel` hardening as of 2026-05-04:
+
+- Ubuntu packages are current with kernel `5.15.0-177-generic`, Tailscale
+  `1.96.4`, and Docker Engine `29.4.2`.
+- Traefik publishes only public `80/tcp` and `443/tcp`; the insecure dashboard
+  API is disabled with `--api.insecure=false`, and `8080/tcp` is not published.
+- `adguard.chienlt.com` resolves to the `cle-viettel` Tailscale address
+  `100.107.99.32`. The `cle-viettel` Traefik `adguard-rtr` router and backend
+  service were removed.
+- `docker-user-firewall.service` installs a persistent `DOCKER-USER` guard
+  chain that allows Docker-published public traffic from `eth0` only to
+  `80/tcp` and `443/tcp`, then drops other Docker-published public ports.
+- `homiix-app` may still show a Docker listener on `0.0.0.0:8000`, but public
+  `eth0` access is blocked by the `DOCKER-USER` guard.
+- `homiix-app` is manually run on Docker network `homiix-net` with restart
+  policy `unless-stopped` and a Python-based Docker healthcheck against
+  `http://127.0.0.1:8000/`. The image's original `curl` healthcheck is not used
+  because the image does not include `curl`.
+- Runtime Traefik and monitoring compose files keep secrets in root-only `.env`
+  files instead of literal compose environment values.
+- CrowdSec `1.7.7` runs as a system service. Its Traefik acquisition file is
+  `/etc/crowdsec/acquis.d/traefik.yaml`, reading
+  `/root/Source/traefik/logs/access.log` with `type: traefik`, and the
+  `crowdsecurity/traefik` collection is installed.
+- CrowdSec LAPI listens on `0.0.0.0:8080` for the Traefik container. UFW allows
+  `172.21.0.0/16` to reach `8080/tcp` and denies public `8080/tcp`; public
+  `171.244.62.91:8080` times out.
+- Traefik uses the
+  `github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin` CrowdSec bouncer
+  plugin. The `traefik-media` bouncer key is stored root-only at
+  `/root/Source/traefik/crowdsec/bouncer-key`.
+- Bazarr, Jellyfin, Jellyseerr, and Plex routers use `media-public-chain`, which
+  applies the CrowdSec bouncer, a `600/minute` rate limit with `300` burst, and
+  basic security headers. `timthuoc.chienlt.com` is intentionally outside this
+  media chain.
 
 ## VM 121 Runtime Integrations
 

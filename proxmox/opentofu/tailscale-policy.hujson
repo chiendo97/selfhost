@@ -21,7 +21,9 @@
 
 	"hosts": {
 		"cle-viettel-vpn": "100.107.99.32",
+		"cle-cloudfly":    "100.71.47.8",
 		"oracle":          "100.79.39.73",
+		"pulse-pve":       "100.86.86.121",
 		"ts-mcp":          "100.65.93.82",
 		"n100":            "100.107.253.59",
 		"jellyfin-pve":    "100.111.70.79",
@@ -100,7 +102,7 @@
 		{
 			"src": ["host:cle-viettel-vpn"],
 			"dst": ["host:jellyfin-pve"],
-			"ip":  ["*"],
+			"ip":  ["8096"],
 		},
 		// --- Media: viettel -> selfhost Jellyseerr ---
 		{
@@ -113,6 +115,16 @@
 			"src": ["host:cle-viettel-vpn"],
 			"dst": ["host:selfhost-pve"],
 			"ip":  ["6767"],
+		},
+		// --- Pulse agents: remote servers -> Pulse hub ---
+		{
+			"src": [
+				"host:cle-viettel-vpn",
+				"host:cle-cloudfly",
+				"host:oracle",
+			],
+			"dst": ["host:pulse-pve"],
+			"ip":  ["7655"],
 		},
 		// --- Guest media: Thao -> selfhost Traefik ---
 		{
@@ -136,6 +148,50 @@
 				"192.168.50.245:5000",
 				"192.168.50.246:2283",
 				"192.168.50.244:2049",
+			],
+		},
+		{
+			"src": "host:cle-viettel-vpn",
+			"accept": [
+				"jellyfin-pve:8096",
+				"selfhost-pve:5056",
+				"selfhost-pve:6767",
+			],
+			"deny": [
+				"jellyfin-pve:22",
+				"jellyfin-pve:7007",
+				"jellyfin-pve:8080",
+				"selfhost-pve:22",
+			],
+		},
+		{
+			"src": "host:cle-viettel-vpn",
+			"accept": [
+				"pulse-pve:7655",
+			],
+			"deny": [
+				"pulse-pve:22",
+				"pulse-pve:443",
+			],
+		},
+		{
+			"src": "host:cle-cloudfly",
+			"accept": [
+				"pulse-pve:7655",
+			],
+			"deny": [
+				"pulse-pve:22",
+				"pulse-pve:443",
+			],
+		},
+		{
+			"src": "host:oracle",
+			"accept": [
+				"pulse-pve:7655",
+			],
+			"deny": [
+				"pulse-pve:22",
+				"pulse-pve:443",
 			],
 		},
 	],

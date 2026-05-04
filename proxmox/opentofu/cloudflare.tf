@@ -21,7 +21,7 @@ locals {
     adguard = {
       name    = "adguard.chienlt.com"
       type    = "A"
-      content = "171.244.62.91"
+      content = "100.107.99.32"
       proxied = false
       ttl     = 1
     }

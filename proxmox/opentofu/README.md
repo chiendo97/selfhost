@@ -81,10 +81,11 @@ The CT-scoped manage roles only add `VM.Audit,VM.Config.Options`, which was
 enough to apply provider normalization for the current LXCs without broad VM
 admin privileges.
 
-The VM-scoped manage roles add
-`VM.Audit,VM.Config.Disk,VM.Config.Options,VM.GuestAgent.Audit` on their VM
-paths. They intentionally do not include `VM.PowerMgmt`, so this OpenTofu token
-cannot shut down or restart the NixOS VMs.
+The VM 101-scoped manage role adds
+`VM.Audit,VM.Config.Disk,VM.Config.Options,VM.GuestAgent.Audit` on its VM path.
+The VM 121-scoped manage role also includes `VM.Config.Memory` so OpenTofu can
+apply memory-limit changes. They intentionally do not include `VM.PowerMgmt`,
+so this OpenTofu token cannot shut down or restart the NixOS VMs.
 
 `OpenTofuStorageManage` adds `Datastore.Allocate,Datastore.Audit` on each
 adopted storage path. The provider requires `Datastore.Allocate` even to read
@@ -290,7 +291,7 @@ OpenTofu tracks the current `chienlt.com` Cloudflare DNS records:
 ```text
 *.chienlt.com: A 100.81.144.82
 chienlt.com: A 100.104.100.77
-adguard.chienlt.com: A 171.244.62.91
+adguard.chienlt.com: A 100.107.99.32
 adguard-oracle.chienlt.com: A 168.138.176.219
 bazarr.chienlt.com: A 171.244.62.91
 jellyfin.chienlt.com: A 171.244.62.91

@@ -2,6 +2,54 @@
 
 ## 2026-05-04
 
+- Updated the OpenTofu-managed `adguard.chienlt.com` Cloudflare record from the
+  `cle-viettel` public IP to the `cle-viettel` Tailscale IP `100.107.99.32`.
+- Removed the `adguard.chienlt.com` public Traefik router from
+  `cle-viettel`; before the DNS record moved to the tailnet IP, the public host
+  returned Traefik 404 instead of proxying AdGuard.
+- Installed CrowdSec `1.7.7` on `cle-viettel`, configured Traefik access-log
+  acquisition from `/root/Source/traefik/logs/access.log`, installed the
+  `crowdsecurity/traefik` collection, and created the `traefik-media` bouncer
+  key at `/root/Source/traefik/crowdsec/bouncer-key`.
+- Enabled Traefik's CrowdSec bouncer plugin for the media routers and added
+  `media-public-chain` to Bazarr, Jellyfin, Jellyseerr, and Plex. The chain
+  applies CrowdSec blocking, a lenient `600/minute` rate limit with `300` burst,
+  and basic security headers. `timthuoc.chienlt.com` is unchanged.
+- Verified a manual CrowdSec ban returned HTTP 403 for
+  `jellyseerr.chienlt.com`, deleting the decision restored the normal HTTP 307
+  login redirect, and `cscli decisions list` was empty at post-check. Live
+  backups were written as
+  `/root/Source/traefik/docker-compose.yml.bak-20260504-110718`,
+  `/root/Source/traefik/rules/rules.yml.bak-20260504-110718`, and
+  `/etc/crowdsec/config.yaml.bak-20260504-110702`.
+- Added `VM.Config.Memory` to VM 121's `OpenTofuSelfhostManage` role, reduced
+  `selfhost-pve` memory from 12G to 8G through OpenTofu, and restarted the VM
+  so the lower memory limit takes effect.
+- Enabled VM 121 `selfhost-pve` virtio balloon statistics by setting the
+  OpenTofu floating memory target to the full 8G allocation.
+- Hardened external `cle-viettel` ingress after security review. Disabled the
+  public insecure Traefik dashboard/API by setting `--api.insecure=false` and
+  removing the `8080/tcp` publish; verified public `8080` times out while
+  `80/443` remain reachable.
+- Installed persistent `docker-user-firewall.service` on `cle-viettel` to add a
+  `DOCKER-USER` guard chain that permits public Docker-published traffic from
+  `eth0` only to `80/tcp` and `443/tcp`. Verified public `8000/tcp` times out
+  even though the legacy `homiix-app` Docker listener still exists.
+- Recreated `homiix-app` on `cle-viettel` with an equivalent Python-based
+  Docker healthcheck because the image healthcheck used `curl`, but the image
+  does not include `curl`. Verified Docker reports the container healthy and the
+  Pulse `homiix-app` health alert cleared.
+- Moved literal Traefik Cloudflare DNS and monitoring Watchtower notification
+  values into root-only `.env` files on `cle-viettel`. Remote compose backups
+  were written as `/root/Source/traefik/docker-compose.yml.bak-20260504-075823`
+  and `/root/Source/monitoring/docker-compose.yml.bak-20260504-075823`.
+- Narrowed the Tailscale grant from `cle-viettel-vpn` to `jellyfin-pve` from all
+  ports to only `8096`, added ACL tests for the allowed and denied ports, and
+  applied the OpenTofu-managed policy. Verified `cle-viettel-vpn` can reach
+  `jellyfin-pve:8096` but not `jellyfin-pve:7007`.
+- Upgraded and rebooted `cle-viettel`. It is now running kernel
+  `5.15.0-177-generic`, Tailscale `1.96.4`, and Docker Engine `29.4.2`, with
+  no remaining apt upgrades or reboot requirement at post-check.
 - Raised Pulse host-agent SMART disk temperature alerting from `60/55 C` to
   `65/60 C` after `cle-pve` disk `sde` reached the previous `60 C` warning
   threshold. Pulse auto-resolved the active disk-temperature alert after the
@@ -12,6 +60,12 @@
   `tag:server`, and imported the new Tailscale tag/key-expiry resources into
   OpenTofu. The tailnet address is `100.86.86.121` and the Proxmox LXC config
   backup is `/root/lxc-102.conf.bak-tailscale-20260504-133008` on `cle-pve`.
+- Installed Pulse `v5.1.29` agents on remote tailnet hosts
+  `cle-viettel-vpn`, `cle-cloudfly`, and `oracle`, all reporting to CT 102
+  through `http://100.86.86.121:7655`. `cle-viettel` also reports Docker
+  containers through agent ID `cle-viettel-docker`; `cle-cloudfly` and `oracle`
+  are host-only. Added the OpenTofu-managed Tailscale grant allowing only these
+  three hosts to reach `pulse-pve:7655`.
 - Raised Pulse host-agent SMART disk temperature alerting from `55/50 C` to
   `60/55 C` after `cle-pve` disks hovered around `55-58 C`; existing active
   disk-temperature alerts cleared after the config update. A live backup was

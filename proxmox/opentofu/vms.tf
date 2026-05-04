@@ -230,7 +230,7 @@ resource "proxmox_virtual_environment_vm" "selfhost_pve" {
 
   memory {
     dedicated      = local.qemu_guests.selfhost_pve.memory
-    floating       = 0
+    floating       = local.qemu_guests.selfhost_pve.memory
     keep_hugepages = false
     shared         = 0
   }
