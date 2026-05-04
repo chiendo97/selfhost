@@ -163,6 +163,19 @@ OpenTofu manages the full Tailscale policy from
 `proxmox/opentofu/tailscale-policy.hujson`. Manual ACL edits in the Tailscale
 admin console or API will drift until copied back into that file.
 
+Tailscale `group:media-guests` currently contains
+`nguyenphuongthao9497@gmail.com`. It grants HTTPS access to VM 121 Traefik for
+Frigate and media services:
+
+```text
+selfhost-pve:443
+```
+
+The same policy tests deny SSH, direct media backend ports, and NAS/NFS access
+for `group:media-guests`. Tailscale ACLs are host-and-port based, so hostname
+separation for services behind `selfhost-pve:443` must come from Traefik or the
+applications themselves.
+
 OpenTofu also manages Tailscale DNS as a full tailnet DNS resource:
 
 ```text
@@ -353,17 +366,75 @@ VM 121 Traefik routes local/LXC services:
 | `bambuddy.chienlt.com` | `http://100.107.253.59:8000` |
 | `pulse.chienlt.com` | `http://192.168.50.18:7655` |
 | `homepage.chienlt.com` | Homepage container on VM 121 |
+| `dozzle.chienlt.com` | Dozzle container on VM 121 |
 
 Pulse local password auth is disabled on CT 102. VM 121 Traefik injects Pulse
 proxy-auth headers for `pulse.chienlt.com`, so the UI opens as proxy user
 `cle`; direct backend access without the proxy secret is rejected. Pulse API
-token auth remains enabled for the `cle-pve` host agent with only
-`host-agent:report` and `host-agent:config:read` scopes.
+token auth remains enabled for agents.
+
+Pulse alert notifications are active. CT 102 stores the enabled `Telegram
+Alerts` webhook encrypted at `/etc/pulse/webhooks.enc`; the Telegram bot token
+and chat ID are sourced from local `.env.local` during setup and are not stored
+in the repo. Host-agent SMART disk temperature alerts trigger at `60 C` and
+clear at `55 C`.
 
 `cle-pve` runs `pulse-agent.service` from `/usr/local/bin/pulse-agent`, pointing
 at `http://192.168.50.18:7655` with host metrics enabled, Docker/Kubernetes
 disabled, and Proxmox mode enabled for PVE. The agent token is stored root-only
 at `/var/lib/pulse-agent/token`.
+
+Docker-running LXCs run containerized Pulse agents from
+`/opt/pulse-agent/docker-compose.yml`, using `rcourtman/pulse:5.1` with the
+bundled `/opt/pulse/bin/pulse-agent-linux-amd64` binary. These agents mount the
+local Docker socket, disable host/Kubernetes/Proxmox collection, disable agent
+auto-update, and report Docker only to `http://192.168.50.18:7655`.
+
+```text
+110 plex-pve     agent-id plex-pve-docker
+111 jellyfin-pve agent-id jellyfin-pve-docker
+113 frigate-pve  agent-id frigate-pve-docker
+114 immich-pve   agent-id immich-pve-docker
+```
+
+VM 121 `selfhost-pve` also runs a containerized Pulse Docker agent as service
+`pulse-agent` in `/srv/selfhost/docker-compose.yml`. It uses the same Pulse
+image and Docker-only flags, with agent ID `selfhost-pve-docker`.
+
+N100 runs a rootless Pulse Podman agent under Linux user `cle` as
+`~/.config/systemd/user/pulse-agent.service`. It uses
+`~/.local/bin/pulse-agent`, reads its token from `~/.config/pulse-agent/token`,
+and talks only to the rootless Podman socket at
+`/run/user/1000/podman/podman.sock`. Host and Podman/Docker collection are
+enabled; Kubernetes and Proxmox collection are disabled. Pulse lists it as
+hostname `n100` in Hosts and as agent ID `n100-podman` in Docker hosts.
+
+Each Docker Pulse agent has a separate API token with `docker:report`,
+`host-agent:config:read`, and `host-agent:report` scopes. The compose
+healthcheck is disabled because the public Pulse image carries the server
+healthcheck, while these containers run only the agent binary.
+
+```text
+LXC tokens:          /opt/pulse-agent/token
+selfhost-pve token:  /srv/selfhost/pulse-agent/token
+N100 token:          ~/.config/pulse-agent/token
+```
+
+VM 121 also runs the central Dozzle UI in `/srv/selfhost/docker-compose.yml`.
+It reads VM 121's local Docker socket and connects to Dozzle agents running on
+the Docker LXCs. The LXC agents run from
+`/opt/dozzle-agent/docker-compose.yml`, mount only the local Docker socket
+read-only, and expose Dozzle agent port `7007` on the LAN:
+
+```text
+192.168.50.242:7007 plex-pve
+192.168.50.243:7007 jellyfin-pve
+192.168.50.245:7007 frigate-pve
+192.168.50.246:7007 immich-pve
+```
+
+The central Dozzle container uses `DOZZLE_REMOTE_AGENT` with friendly host names
+and group `PVE LXCs`. The remote agents are not published through Traefik.
 
 Pulse now monitors Proxmox through dedicated token auth:
 
@@ -387,6 +458,22 @@ over Tailscale:
 The OpenTofu-managed tailnet policy grants `cle-viettel-vpn` access to those VM
 121 ports.
 
+## VM 121 Runtime Integrations
+
+Reclaimerr runs in the VM 121 Docker stack. Its service connection settings live
+in the runtime SQLite database at
+`/srv/selfhost/reclaimerr/data/database/reclaimerr.db`.
+
+Current Reclaimerr media service endpoints:
+
+| Service | Endpoint |
+|---|---|
+| Jellyfin | `http://192.168.50.243:8096` |
+| Plex | `http://192.168.50.242:32400` |
+| Radarr | `http://radarr:7878` |
+| Sonarr | `http://sonarr:8989` |
+| Seerr | `http://seerr:5055` |
+
 ## Homepage
 
 Homepage live config:
@@ -395,6 +482,13 @@ Homepage live config:
 /srv/selfhost/homepage/config/services.yaml
 /srv/selfhost/homepage/config/widgets.yaml
 ```
+
+`services.yaml` includes the daily service groups plus curated
+`Infrastructure` and `Internal Tools` groups. The added infrastructure/admin
+coverage includes Proxmox, Pulse, Kopia, router admin links, Prefect,
+Silverbullet, Playwright MCP, Chrome DevTools, Tailscale MCP, FlareSolverr,
+Docker Socket Proxy, Oracle Hermes, Bambuddy, TRMNL BYOS, Matter Server, HA
+MCP, and Bambuddy's Obico ML status endpoint.
 
 The Homepage container mounts VM 121 `/mnt/user/media` read-only as
 `/storage/media`. `widgets.yaml` includes a `Media Storage` resources widget

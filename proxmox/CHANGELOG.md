@@ -1,5 +1,58 @@
 # cle-pve Infrastructure Changelog
 
+## 2026-05-04
+
+- Raised Pulse host-agent SMART disk temperature alerting from `55/50 C` to
+  `60/55 C` after `cle-pve` disks hovered around `55-58 C`; existing active
+  disk-temperature alerts cleared after the config update. A live backup was
+  written on CT 102 as `/etc/pulse/alerts.json.backup-disktemp-20260504-071950`.
+- Added Tailscale `group:media-guests` for
+  `nguyenphuongthao9497@gmail.com` and granted HTTPS access to VM 121
+  `selfhost-pve:443` for Frigate and media services through Traefik. The policy
+  tests explicitly deny SSH, direct media backend ports, and NAS/NFS access for
+  this group.
+
+## 2026-05-03
+
+- Expanded the live Homepage config on VM 121 with curated `Infrastructure`
+  and `Internal Tools` groups, plus N100 home/admin entries for Bambuddy, TRMNL
+  BYOS, Matter Server, HA MCP, and Bambuddy's Obico ML status endpoint. Backed
+  up the previous live config to
+  `/srv/selfhost/homepage/config/services.yaml.bak-admin-dashboard-20260503215324`.
+- Added Oracle `Hermes` to the live Homepage `Internal Tools` group, pointing
+  at the Hermes WebUI on tailnet port `8787` and monitoring it through
+  Homepage's site monitor. Backed up the previous live config to
+  `/srv/selfhost/homepage/config/services.yaml.bak-hermes-20260503222018`.
+- Removed the stale `Unraid` card from live Homepage and replaced missing icon
+  references for hledger, Decluttarr, Reclaimerr, Prefect, and Playwright MCP
+  with resolvable Homepage icon sources. Backed up the previous live config to
+  `/srv/selfhost/homepage/config/services.yaml.bak-icons-unraid-20260503222935`.
+- Decommissioned Maintainerr from VM 121 by removing its Homepage card,
+  removing the `maintainerr` service from `/srv/selfhost/docker-compose.yml`,
+  and removing the stopped/running container. The persisted data directory
+  `/srv/selfhost/maintainerr/data` was left in place for rollback. Backups were
+  created at
+  `/srv/selfhost/homepage/config/services.yaml.bak-maintainerr-decom-20260503223504`
+  and `/srv/selfhost/docker-compose.yml.bak-maintainerr-decom-20260503223512`.
+- Updated Reclaimerr's live service config on VM 121 so Jellyfin points to LXC
+  `jellyfin-pve` at `http://192.168.50.243:8096` and Plex points to LXC
+  `plex-pve` at `http://192.168.50.242:32400`. Radarr, Sonarr, and Seerr remain
+  Docker-network local to VM 121. Backed up the SQLite database to
+  `/srv/selfhost/reclaimerr/data/database/reclaimerr.db.bak-lxc-endpoints-20260503224421`.
+- Added a rootless Pulse Podman agent on N100/current host under user `cle`.
+  The user service is `~/.config/systemd/user/pulse-agent.service`, the token
+  is stored at `~/.config/pulse-agent/token`, and the agent uses only
+  `/run/user/1000/podman/podman.sock` with agent ID `n100-podman`. The Pulse API
+  token metadata backup on CT 102 is
+  `/etc/pulse/api_tokens.json.backup-n100-podman-agent-20260503-003823`.
+- Enabled host collection on the N100 Pulse user service so Pulse shows
+  hostname `n100` in Hosts while keeping Podman collection under
+  `n100-podman`.
+- Added the Pulse `Telegram Alerts` notification webhook from local
+  `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` values, verified a Telegram HTTP
+  200 test delivery, and activated Pulse alert notifications. The webhook is
+  stored encrypted on CT 102 at `/etc/pulse/webhooks.enc`.
+
 ## 2026-05-02
 
 - Backed up local OpenTofu state to
@@ -59,6 +112,22 @@
 - Backed up the updated local OpenTofu state to
   `/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-200900` with
   a matching SHA256 file.
+- Added containerized Pulse Docker agents to Docker-running LXCs `plex-pve`,
+  `jellyfin-pve`, `frigate-pve`, and `immich-pve`. Each agent runs from
+  `/opt/pulse-agent/docker-compose.yml`, uses a separate root-only token, mounts
+  the local Docker socket, and reports Docker metrics to CT 102 Pulse.
+- Added a containerized Pulse Docker agent to VM 121 `selfhost-pve` as service
+  `pulse-agent` in `/srv/selfhost/docker-compose.yml`. Its token is stored
+  root-only at `/srv/selfhost/pulse-agent/token`, and the live compose backup is
+  `/srv/selfhost/docker-compose.yml.bak-pulse-agent-20260502-220226`. The Pulse
+  token metadata backup is
+  `/etc/pulse/api_tokens.json.backup-selfhost-agent-20260502-220050`.
+- Added Dozzle agents to Docker-running LXCs `plex-pve`, `jellyfin-pve`,
+  `frigate-pve`, and `immich-pve` from `/opt/dozzle-agent/docker-compose.yml`.
+  VM 121 central Dozzle now uses `DOZZLE_REMOTE_AGENT` to read those remote
+  Docker logs and was pulled to Dozzle `v10.5.1` after backing up the live
+  compose file to
+  `/srv/selfhost/docker-compose.yml.bak-dozzle-agents-20260502-214322`.
 - Updated external `cle-viettel` Traefik `bazarr.chienlt.com` backend from old
   `unraid-cle` tail IP to VM 121 `selfhost-pve` tail IP
   `100.81.144.82:6767`.

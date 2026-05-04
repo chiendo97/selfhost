@@ -6,6 +6,9 @@
 			"anhvietdl.kid@gmail.com",
 			"chienlt@homic.vn",
 		],
+		"group:media-guests": [
+			"nguyenphuongthao9497@gmail.com",
+		],
 	},
 
 	"tagOwners": {
@@ -110,6 +113,30 @@
 			"src": ["host:cle-viettel-vpn"],
 			"dst": ["host:selfhost-pve"],
 			"ip":  ["6767"],
+		},
+		// --- Guest media: Thao -> selfhost Traefik ---
+		{
+			"src": ["group:media-guests"],
+			"dst": ["host:selfhost-pve"],
+			"ip":  ["443"],
+		},
+	],
+
+	"tests": [
+		{
+			"src": "group:media-guests",
+			"accept": [
+				"selfhost-pve:443",
+			],
+			"deny": [
+				"selfhost-pve:22",
+				"selfhost-pve:5056",
+				"100.111.70.79:8096",
+				"192.168.50.242:32400",
+				"192.168.50.245:5000",
+				"192.168.50.246:2283",
+				"192.168.50.244:2049",
+			],
 		},
 	],
 

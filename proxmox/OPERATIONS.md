@@ -107,6 +107,41 @@ ssh cle-pve 'pct exec 113 -- docker ps'
 ssh cle-pve 'pct exec 114 -- docker ps'
 ```
 
+Pulse Docker agent checks:
+
+```bash
+ssh cle-pve 'for id in 110 111 113 114; do pct exec "$id" -- docker ps --filter name=pulse-agent; done'
+ssh cle-pve 'for id in 110 111 113 114; do pct exec "$id" -- sh -lc "cd /opt/pulse-agent && docker compose ps"; done'
+ssh selfhost-pve 'cd /srv/selfhost && docker compose ps pulse-agent'
+ssh selfhost-pve 'docker logs --tail 80 pulse-agent'
+ssh cle-pve 'pct exec 102 -- journalctl -u pulse --since "10 minutes ago" --no-pager | grep -E "dockerContainer|pulse-agent|Docker container health"'
+```
+
+N100 rootless Podman Pulse agent checks, run on N100 as user `cle`:
+
+```bash
+systemctl --user status pulse-agent.service --no-pager
+journalctl --user -u pulse-agent.service --since "10 minutes ago" --no-pager
+podman ps -a
+```
+
+Pulse notification checks:
+
+```bash
+curl -fsS -H 'Accept: application/json' -H 'X-Requested-With: XMLHttpRequest' https://pulse.chienlt.com/api/notifications/health | jq .
+curl -fsS -H 'Accept: application/json' -H 'X-Requested-With: XMLHttpRequest' https://pulse.chienlt.com/api/alerts/config | jq '{enabled, activationState, diskTemperature:.hostDefaults.diskTemperature}'
+ssh cle-pve 'pct exec 102 -- stat -c "%a %U:%G %n" /etc/pulse/webhooks.enc'
+```
+
+Dozzle remote agent checks:
+
+```bash
+ssh cle-pve 'for id in 110 111 113 114; do pct exec "$id" -- docker ps --filter name=dozzle-agent; done'
+ssh cle-pve 'for id in 110 111 113 114; do pct exec "$id" -- sh -lc "cd /opt/dozzle-agent && docker compose ps"; done'
+ssh selfhost-pve 'for host in 192.168.50.242 192.168.50.243 192.168.50.245 192.168.50.246; do timeout 3 bash -lc "</dev/tcp/$host/7007" && echo "$host open"; done'
+ssh selfhost-pve 'docker logs --tail 80 dozzle'
+```
+
 ## NAS Media Export
 
 Check exports:
