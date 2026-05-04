@@ -75,6 +75,119 @@ resource "proxmox_virtual_environment_vm" "qemu" {
   }
 }
 
+resource "proxmox_virtual_environment_vm" "windows11" {
+  node_name   = local.node_name
+  vm_id       = local.windows11_vm.vm_id
+  name        = local.windows11_vm.name
+  description = local.windows11_vm.description
+
+  acpi                                 = true
+  bios                                 = "ovmf"
+  boot_order                           = ["sata0"]
+  delete_unreferenced_disks_on_destroy = true
+  keyboard_layout                      = "en-us"
+  machine                              = "pc-q35-10.1"
+  migrate                              = false
+  on_boot                              = false
+  protection                           = false
+  purge_on_destroy                     = true
+  reboot                               = false
+  reboot_after_update                  = false
+  scsi_hardware                        = "virtio-scsi-single"
+  started                              = false
+  stop_on_destroy                      = true
+  tablet_device                        = true
+  tags                                 = ["windows"]
+  template                             = false
+  timeout_clone                        = 1800
+  timeout_create                       = 1800
+  timeout_migrate                      = 1800
+  timeout_reboot                       = 1800
+  timeout_shutdown_vm                  = 1800
+  timeout_start_vm                     = 1800
+  timeout_stop_vm                      = 300
+
+  agent {
+    enabled = false
+  }
+
+  cdrom {
+    file_id   = local.windows11_vm.virtio_iso_file_id
+    interface = "ide2"
+  }
+
+  cpu {
+    cores   = local.windows11_vm.cores
+    flags   = []
+    limit   = 0
+    numa    = false
+    sockets = 1
+    type    = "host"
+  }
+
+  disk {
+    aio          = "io_uring"
+    backup       = true
+    cache        = "none"
+    datastore_id = local.windows11_vm.boot_disk_datastore
+    discard      = "ignore"
+    file_format  = "raw"
+    import_from  = local.windows11_vm.import_file_id
+    interface    = "sata0"
+    iothread     = false
+    replicate    = true
+    size         = local.windows11_vm.boot_disk_size
+    ssd          = true
+  }
+
+  efi_disk {
+    datastore_id      = local.windows11_vm.boot_disk_datastore
+    file_format       = "raw"
+    pre_enrolled_keys = true
+    type              = "4m"
+  }
+
+  memory {
+    dedicated      = local.windows11_vm.memory
+    floating       = 0
+    keep_hugepages = false
+    shared         = 0
+  }
+
+  network_device {
+    bridge       = "vmbr0"
+    disconnected = false
+    firewall     = true
+    mac_address  = local.windows11_vm.mac_address
+    model        = "e1000"
+    mtu          = 0
+    queues       = 0
+    rate_limit   = 0
+    vlan_id      = 0
+  }
+
+  operating_system {
+    type = "win11"
+  }
+
+  tpm_state {
+    datastore_id = local.windows11_vm.boot_disk_datastore
+    version      = "v2.0"
+  }
+
+  vga {
+    memory = 16
+    type   = "std"
+  }
+
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes = [
+      disk[0].path_in_datastore,
+    ]
+  }
+}
+
 resource "proxmox_virtual_environment_vm" "homelab_pve" {
   node_name   = local.node_name
   vm_id       = local.qemu_guests.homelab_pve.vm_id

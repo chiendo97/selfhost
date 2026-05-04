@@ -35,6 +35,19 @@ locals {
     }
   }
 
+  windows11_vm = {
+    vm_id               = 100
+    name                = "windows11"
+    description         = "Windows 11 VM imported from /fast/domains/Windows11/vdisk1.img"
+    cores               = 4
+    memory              = 8192
+    boot_disk_datastore = "fast-vm"
+    boot_disk_size      = 40
+    import_file_id      = "local:import/Windows11-vdisk1.qcow2"
+    virtio_iso_file_id  = "local:iso/virtio-win-0.1.271-1.iso"
+    mac_address         = "BC:24:11:50:01:00"
+  }
+
   lxc_guests = {
     pulse = {
       vm_id              = 102

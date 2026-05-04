@@ -18,6 +18,7 @@ Last verified: 2026-05-04.
 
 | ID | Type | Name | Address | Purpose |
 |---:|---|---|---|---|
+| 100 | VM | `windows11` | stopped; last DHCP `192.168.50.227` | Imported Windows 11 VM from old Unraid disk image |
 | 101 | VM | `homelab-pve` | `192.168.50.130` | NixOS homelab host managed from dotfiles |
 | 121 | VM | `selfhost-pve` | `192.168.50.121`, tail `100.81.144.82` | NixOS Docker host for selfhost stack, Traefik, Homepage, Jellyseerr |
 | 102 | LXC | `pulse` | `192.168.50.18` | Pulse monitoring |
@@ -30,7 +31,6 @@ Last verified: 2026-05-04.
 
 Removed guests:
 
-- VM 100 `unraid`
 - VM 120 `apps-docker-pve`
 
 ## LXC Resource Limits
@@ -83,20 +83,23 @@ not for shrinking the VM below 8G during normal operation.
 
 `nas-pve` starts before consumers of the media export. `selfhost-pve` starts
 after the app LXCs so Traefik and Homepage come up after their LAN backends.
+VM 100 `windows11` is intentionally stopped and not configured for host boot
+autostart.
 
 ## IaC
 
 OpenTofu adoption has started under `proxmox/opentofu` in this repo. All current
-LXCs, both NixOS VMs, the Tailscale tailnet policy, Tailscale DNS config, and
-stable Tailscale device tags/key-expiry/route settings are now imported and
-plan no changes. The current Proxmox backup job, storage definitions, and
-Proxmox APT repository enablement are also imported and plan no changes. Current
+LXCs, both NixOS VMs, VM 100 `windows11`, the Tailscale tailnet policy,
+Tailscale DNS config, and stable Tailscale device tags/key-expiry/route settings
+are now imported or managed and plan no changes. The current Proxmox backup job,
+storage definitions, and Proxmox APT repository enablement are also imported and
+plan no changes. Current
 `chienlt.com` Cloudflare DNS records are imported and plan no changes. The
 Pulse-created Proxmox monitoring role, user, and token metadata are imported and
 plan no changes.
 
-Local OpenTofu state on this workstation has imported all 9 active guests plus
-the live Tailscale policy, DNS config, stable device settings, selected route
+Local OpenTofu state on this workstation tracks all 10 active guests plus the
+live Tailscale policy, DNS config, stable device settings, selected route
 settings, platform settings, Cloudflare DNS records, and Pulse monitoring
 identity metadata, then verified a no-op follow-up plan. The state file and
 local token env files are ignored by git.
@@ -105,6 +108,7 @@ A copy of the local state is backed up on `cle-pve`:
 
 ```text
 /tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-200900
+/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260504-214447
 ```
 
 Proxmox has user/token `opentofu@pve!cle-pve-adopt` for this adoption layer.
@@ -132,6 +136,17 @@ VM 121 has VM-scoped role `OpenTofuSelfhostManage` with
 `VM.Audit,VM.Config.Disk,VM.Config.Memory,VM.Config.Options,VM.GuestAgent.Audit`.
 It does not include `VM.PowerMgmt`, so the OpenTofu token cannot shut down or
 restart `selfhost-pve`.
+
+VM 100 has VM-scoped role `OpenTofuWindowsManage` with
+`VM.Allocate,VM.Audit,VM.Config.CDROM,VM.Config.CPU,VM.Config.Disk`,
+`VM.Config.HWType,VM.Config.Memory,VM.Config.Network,VM.Config.Options`, and
+`VM.GuestAgent.Audit,VM.PowerMgmt`. OpenTofu can start and stop VM 100; the
+desired state is currently stopped.
+
+OpenTofu has Windows-import storage role `OpenTofuWindowsStorage` with
+`Datastore.Audit,Datastore.AllocateSpace` on `/storage/local` and
+`/storage/fast-vm`, and network role `OpenTofuWindowsNetwork` with `SDN.Use` on
+`/sdn/zones/localnetwork/vmbr0`.
 
 OpenTofu also has storage-scoped role `OpenTofuStorageManage` with
 `Datastore.Allocate,Datastore.Audit` on:
@@ -276,7 +291,7 @@ Important ZFS datasets:
 | `fast/vm` | Proxmox VM/LXC disks |
 | `fast/immich-app` | Live Immich app data, mounted into CT 114 and CT 115 |
 | `fast/selfhost-decom-20260501` | Read-only rollback copy of old selfhost/appdata |
-| `fast/domains` | Old Unraid VM images, not referenced by Proxmox configs |
+| `fast/domains` | Old Unraid VM images; `Windows11/vdisk1.img` was imported into VM 100 |
 | `tank/media` | Media library |
 | `tank/frigate` | Frigate dataset; recordings are under `tank/frigate/storage` |
 | `tank/cache-import` | Migration cache/import staging data |

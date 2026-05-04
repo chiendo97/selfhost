@@ -2,6 +2,15 @@
 
 ## 2026-05-04
 
+- Created OpenTofu-managed VM 100 `windows11` from the old Unraid
+  `/fast/domains/Windows11/vdisk1.img` qcow2 image. The VM uses OVMF,
+  `pc-q35-10.1`, TPM 2.0, SATA boot disk on `fast-vm`, E1000 networking on
+  `vmbr0`, and the staged VirtIO driver ISO
+  `local:iso/virtio-win-0.1.271-1.iso`. It booted at `192.168.50.227` with RDP
+  open, then was set back to stopped with no host boot autostart. Added
+  VM/storage/network-scoped OpenTofu ACLs for VMID 100, including VM power
+  management, and backed up the updated local state to
+  `/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260504-214447`.
 - Updated the OpenTofu-managed `adguard.chienlt.com` Cloudflare record from the
   `cle-viettel` public IP to the `cle-viettel` Tailscale IP `100.107.99.32`.
 - Removed the `adguard.chienlt.com` public Traefik router from
