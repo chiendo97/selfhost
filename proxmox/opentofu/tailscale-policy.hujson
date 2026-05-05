@@ -70,6 +70,12 @@
 			"users":  ["autogroup:nonroot", "root"],
 			"action": "accept",
 		},
+		{
+			"src":    ["group:media-guests"],
+			"dst":    ["tag:server", "tag:trusted"],
+			"users":  ["autogroup:nonroot", "root"],
+			"action": "accept",
+		},
 	],
 
 	"nodeAttrs": [
@@ -103,6 +109,12 @@
 			"src": ["host:cle-viettel-vpn"],
 			"dst": ["host:jellyfin-pve"],
 			"ip":  ["8096"],
+		},
+		// --- SSH: Thao -> tagged servers ---
+		{
+			"src": ["group:media-guests"],
+			"dst": ["tag:server", "tag:trusted"],
+			"ip":  ["22"],
 		},
 		// --- Media: viettel -> selfhost Jellyseerr ---
 		{
@@ -138,10 +150,11 @@
 		{
 			"src": "group:media-guests",
 			"accept": [
+				"tag:server:22",
+				"tag:trusted:22",
 				"selfhost-pve:443",
 			],
 			"deny": [
-				"selfhost-pve:22",
 				"selfhost-pve:5056",
 				"100.111.70.79:8096",
 				"192.168.50.242:32400",
@@ -200,6 +213,11 @@
 		{
 			"src":    "tag:trusted",
 			"dst":    ["tag:trusted"],
+			"accept": ["root", "autogroup:nonroot"],
+		},
+		{
+			"src":    "group:media-guests",
+			"dst":    ["tag:server", "tag:trusted"],
 			"accept": ["root", "autogroup:nonroot"],
 		},
 	],

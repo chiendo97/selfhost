@@ -1,5 +1,24 @@
 # cle-pve Infrastructure Changelog
 
+## 2026-05-05
+
+- Decommissioned the obsolete rootless Podman monitoring stack on `oracle`:
+  Beszel hub, Prometheus, and Grafana. Their Quadlet sources were archived
+  outside the generator path at
+  `/home/ubuntu/.local/share/decommissioned-containers/20260505/`, their
+  containers were removed, and their host data directories were preserved under
+  `/home/ubuntu/Source/selfhost/`. The separate `beszel-agent.service` system
+  unit was stopped, disabled, and archived under
+  `/etc/systemd/system/decommissioned-20260505/`. Uptime Kuma remains active on
+  `3001/tcp`.
+- Migrated `oracle` rootless Podman state from the deprecated BoltDB backend to
+  SQLite with `podman system migrate --migrate-db`. The old DB was renamed to
+  `/home/ubuntu/.local/share/containers/storage/libpod/bolt_state.db-old`.
+- Updated the OpenTofu-managed Tailscale policy so
+  `group:media-guests`/`nguyenphuongthao9497@gmail.com` can use Tailscale SSH
+  to tagged servers on `tag:server:22` and `tag:trusted:22`, with matching ACL
+  and SSH policy tests.
+
 ## 2026-05-04
 
 - Created OpenTofu-managed VM 100 `windows11` from the old Unraid
