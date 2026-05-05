@@ -39,7 +39,7 @@ Current Proxmox LXC limits after tuning:
 
 | ID | Name | Cores | Memory | Swap | Rootfs |
 |---:|---|---:|---:|---:|---:|
-| 102 | `pulse` | 1 | 512M | 256M | 4G |
+| 102 | `pulse` | 1 | 1024M | 512M | 4G |
 | 110 | `plex-pve` | 4 | 4096M | 1024M | 24G |
 | 111 | `jellyfin-pve` | 2 | 2048M | 512M | 24G |
 | 112 | `nas-pve` | 1 | 512M | 256M | 16G |
@@ -115,7 +115,9 @@ Proxmox has user/token `opentofu@pve!cle-pve-adopt` for this adoption layer.
 The user has `PVEAuditor` plus custom role `OpenTofuAdoptDisk` containing only
 `VM.Config.Disk`.
 
-Each tightened LXC has a CT-scoped role with `VM.Audit,VM.Config.Options`:
+Each tightened LXC has a CT-scoped role with `VM.Audit,VM.Config.Options`.
+CT 102 `OpenTofuPulseManage` also includes `VM.Config.Memory` so OpenTofu can
+adjust the Pulse LXC memory limit:
 
 | CT | Role |
 |---:|---|

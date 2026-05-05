@@ -34,6 +34,10 @@
 - Allowed `group:media-guests`/`nguyenphuongthao9497@gmail.com` to reach
   Jellyfin directly at `100.111.70.79:8096` over Tailscale while keeping Dozzle
   and other non-SSH Jellyfin ports denied by policy tests.
+- Added `VM.Config.Memory` to CT 102's `OpenTofuPulseManage` role and increased
+  `pulse` from `512M` RAM / `256M` swap to `1024M` RAM / `512M` swap through
+  OpenTofu after live memory pressure showed only `23M` available and `42M`
+  swap in use.
 
 ## 2026-05-04
 

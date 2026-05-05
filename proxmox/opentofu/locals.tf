@@ -55,8 +55,8 @@ locals {
       description        = "Pulse monitoring LXC from community-scripts"
       tags               = ["community-script", "monitoring", "proxmox"]
       cores              = 1
-      memory             = 512
-      swap               = 256
+      memory             = 1024
+      swap               = 512
       rootfs_datastore   = "local-zfs"
       rootfs_size        = 4
       mac_address        = "BC:24:11:4D:C6:9E"

@@ -77,9 +77,10 @@ pulse-monitor@pam!pulse-cle-pve-192-168-50-18
 `OpenTofuAdoptDisk` only adds `VM.Config.Disk`, which the provider needs to
 read imported VM disk metadata.
 
-The CT-scoped manage roles only add `VM.Audit,VM.Config.Options`, which was
+The CT-scoped manage roles only add `VM.Audit,VM.Config.Options`, which is
 enough to apply provider normalization for the current LXCs without broad VM
-admin privileges.
+admin privileges. `OpenTofuPulseManage` also includes `VM.Config.Memory` on
+`/vms/102` so OpenTofu can adjust the Pulse LXC memory limit.
 
 The VM 101-scoped manage role adds
 `VM.Audit,VM.Config.Disk,VM.Config.Options,VM.GuestAgent.Audit` on its VM path.
