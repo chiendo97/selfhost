@@ -1,0 +1,30 @@
+# Loads default set of integrations. Do not remove.
+default_config:
+
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 100.89.182.96
+
+logger:
+  default: info
+
+homeassistant:
+  media_dirs:
+    recording: /tmp
+
+input_boolean:
+  # living_room_fan_state:
+  #   name: Living Room Status Fan Power
+  # living_room_fan_osc:
+  #   name: Living Room Status Fan Oscillating
+  cle_presence_hk:
+    name: Chien Presence Toggle
+    icon: mdi:account
+  thao_presence_hk:
+    name: Thao Presence Toggle
+    icon: mdi:account
+
+smartir:
+
+automation: !include automations.yaml

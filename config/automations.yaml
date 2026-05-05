@@ -1,0 +1,33 @@
+- id: '1777987272956'
+  alias: Roborock finished cleaning Telegram map
+  description: When the Roborock returns to dock after a cleaning run, capture the
+    calibrated Roborock Custom Map image and send it to Telegram via Cle's Bot.
+  triggers:
+  - entity_id: vacuum.roborock_qrevo_edge_series
+    from: returning
+    platform: state
+    to: docked
+  - entity_id: vacuum.roborock_qrevo_edge_series
+    from: cleaning
+    platform: state
+    to: docked
+  actions:
+  - delay:
+      seconds: 5
+  - action: image.snapshot
+    data:
+      filename: /tmp/roborock_last_cleaning_map.jpg
+    target:
+      entity_id: image.roborock_qrevo_edge_series_1705_custom
+  - action: telegram_bot.send_photo
+    data:
+      caption: 'Roborock finished cleaning ✅
+
+        Time: {{ now().strftime(''%H:%M, %d %b %Y'') }}
+
+        Map snapshot attached.'
+      entity_id: notify.cle_s_bot_chien_le
+      file: /tmp/roborock_last_cleaning_map.jpg
+      parse_mode: plain_text
+  initial_state: true
+  mode: single

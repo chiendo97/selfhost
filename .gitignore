@@ -2,6 +2,9 @@
 
 !.gitignore
 !AGENTS.md
+!config/
+!config/configuration.yaml
+!config/automations.yaml
 !quadlet/
 !quadlet/**
 !proxmox/
