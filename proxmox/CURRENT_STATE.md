@@ -389,6 +389,23 @@ Common devices:
 /dev/dri/card0
 ```
 
+Frigate CT 113 currently uses the iGPU for detect/decode paths and only
+transcodes main streams through go2rtc when an explicit main/live stream needs
+H.264 output. Recording inputs use go2rtc aliases that copy the camera video
+stream instead of forcing always-on VAAPI transcodes; the Frigate live view
+prefers camera substreams first.
+
+On 2026-05-05, retained logs showed one Intel `i915` GPU hang at
+`07:58:23`, correlated with a go2rtc VAAPI transcode timeout. The saved host
+error dump is `/root/i915-error-2026-05-05-113802.txt` on `cle-pve`.
+
+Frigate may log `Unable to poll intel GPU stats: Failed to initialize PMU!
+(Permission denied)`. This is expected with the host kernel setting
+`kernel.perf_event_paranoid=4` and does not block video decoding or recording.
+Lowering it to `0` would make Frigate's internal Intel GPU stats work from the
+unprivileged LXC/container, but it is a host-wide perf/PMU permission relaxation
+and is intentionally not applied.
+
 ## Public Routes
 
 VM 121 Traefik routes local/LXC services:

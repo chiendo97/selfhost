@@ -2,6 +2,19 @@
 
 ## 2026-05-05
 
+- Reviewed the CT 113 `frigate-pve` Intel iGPU hang and Frigate/go2rtc setup.
+  Retained host logs showed one `i915` GPU hang at `07:58:23`, correlated with
+  a go2rtc VAAPI transcode timeout; the host error dump was saved at
+  `/root/i915-error-2026-05-05-113802.txt`.
+- Reduced Frigate go2rtc iGPU pressure by changing Tapo recording inputs to
+  go2rtc record aliases that copy camera video instead of forcing always-on
+  VAAPI H.264 transcodes, preferring camera substreams for live views, and
+  keeping main-stream VAAPI transcodes only for explicit main/live viewing.
+- Left host `kernel.perf_event_paranoid=4` in place after evaluating the
+  Frigate PMU stats warning. Lowering it to `0` would fix Frigate's internal
+  Intel GPU stats polling from the unprivileged LXC/container, but it is a
+  host-wide perf/PMU permission relaxation; the warning is cosmetic for
+  decoding and recording.
 - Decommissioned the obsolete rootless Podman monitoring stack on `oracle`:
   Beszel hub, Prometheus, and Grafana. Their Quadlet sources were archived
   outside the generator path at
