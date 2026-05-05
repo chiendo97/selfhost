@@ -184,19 +184,22 @@ admin console or API will drift until copied back into that file.
 
 Tailscale `group:media-guests` currently contains
 `nguyenphuongthao9497@gmail.com`. It grants HTTPS access to VM 121 Traefik for
-Frigate and media services, plus Tailscale SSH access to tagged servers:
+Frigate and media services, direct Jellyfin tailnet service access, plus
+Tailscale SSH access to tagged servers:
 
 ```text
 selfhost-pve:443
+jellyfin-pve:8096
+100.111.70.79:8096
 tag:server:22
 tag:trusted:22
 ```
 
-The same policy tests deny direct media backend ports and NAS/NFS access for
-`group:media-guests`. Tailscale ACLs are host-and-port based, so hostname
-separation for services behind `selfhost-pve:443` must come from Traefik or the
-applications themselves. Tailscale SSH authorization is separately tested with
-`sshTests`.
+The same policy tests deny other direct media backend ports, Dozzle/app ports
+on `jellyfin-pve`, and NAS/NFS access for `group:media-guests`. Tailscale ACLs
+are host-and-port based, so hostname separation for services behind
+`selfhost-pve:443` must come from Traefik or the applications themselves.
+Tailscale SSH authorization is separately tested with `sshTests`.
 
 OpenTofu also manages Tailscale DNS as a full tailnet DNS resource:
 

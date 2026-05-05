@@ -144,6 +144,12 @@
 			"dst": ["host:selfhost-pve"],
 			"ip":  ["443"],
 		},
+		// --- Guest media: Thao -> Jellyfin direct tailnet ---
+		{
+			"src": ["group:media-guests"],
+			"dst": ["host:jellyfin-pve"],
+			"ip":  ["8096"],
+		},
 	],
 
 	"tests": [
@@ -153,14 +159,17 @@
 				"tag:server:22",
 				"tag:trusted:22",
 				"selfhost-pve:443",
+				"jellyfin-pve:8096",
+				"100.111.70.79:8096",
 			],
 			"deny": [
 				"selfhost-pve:5056",
-				"100.111.70.79:8096",
 				"192.168.50.242:32400",
 				"192.168.50.245:5000",
 				"192.168.50.246:2283",
 				"192.168.50.244:2049",
+				"jellyfin-pve:7007",
+				"jellyfin-pve:8080",
 			],
 		},
 		{

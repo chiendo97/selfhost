@@ -18,6 +18,9 @@
   `group:media-guests`/`nguyenphuongthao9497@gmail.com` can use Tailscale SSH
   to tagged servers on `tag:server:22` and `tag:trusted:22`, with matching ACL
   and SSH policy tests.
+- Allowed `group:media-guests`/`nguyenphuongthao9497@gmail.com` to reach
+  Jellyfin directly at `100.111.70.79:8096` over Tailscale while keeping Dozzle
+  and other non-SSH Jellyfin ports denied by policy tests.
 
 ## 2026-05-04
 
