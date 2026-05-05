@@ -2,6 +2,14 @@
 
 ## 2026-05-05
 
+- Added a narrow OpenTofu-managed Tailscale grant for `oracle` to reach
+  `selfhost-pve:443` so the Oracle Hermes gateway can call VM 121
+  Traefik-hosted Arr APIs. Policy tests keep direct VM 121 SSH and direct Arr
+  backend ports denied from `oracle`.
+- Added Oracle Hermes runtime Arr stack credentials through
+  `/home/hermes/.hermes/arr-stack.env`, loaded by a
+  `hermes-gateway.service` systemd user drop-in and exposed to Hermes tools via
+  `terminal.env_passthrough`. Secret values remain runtime-only and untracked.
 - Reviewed the CT 113 `frigate-pve` Intel iGPU hang and Frigate/go2rtc setup.
   Retained host logs showed one `i915` GPU hang at `07:58:23`, correlated with
   a go2rtc VAAPI transcode timeout; the host error dump was saved at

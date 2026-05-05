@@ -105,6 +105,12 @@
 			"dst": ["host:n100"],
 			"ip":  ["8086"],
 		},
+		// --- Hermes gateway: oracle -> selfhost Traefik for Arr APIs ---
+		{
+			"src": ["host:oracle"],
+			"dst": ["host:selfhost-pve"],
+			"ip":  ["443"],
+		},
 		{
 			"src": ["host:cle-viettel-vpn"],
 			"dst": ["host:jellyfin-pve"],
@@ -210,10 +216,15 @@
 			"src": "host:oracle",
 			"accept": [
 				"pulse-pve:7655",
+				"selfhost-pve:443",
 			],
 			"deny": [
 				"pulse-pve:22",
 				"pulse-pve:443",
+				"selfhost-pve:22",
+				"selfhost-pve:7878",
+				"selfhost-pve:8989",
+				"selfhost-pve:9696",
 			],
 		},
 	],

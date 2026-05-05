@@ -239,6 +239,11 @@ selfhost-pve:6767
 Policy tests deny `cle-viettel-vpn` access to Jellyfin SSH, Dozzle agent, and
 other non-service ports.
 
+The OpenTofu-managed policy also grants `oracle` access to `selfhost-pve:443`
+so the Hermes gateway can reach VM 121 Traefik-hosted Arr APIs such as Radarr,
+Sonarr, and Prowlarr. Policy tests keep direct VM 121 SSH and direct Arr backend
+ports denied from `oracle`.
+
 OpenTofu manages the Proxmox backup job `nightly-guests`, the storage
 definitions `local`, `local-zfs`, `fast-vm`, and `tank-backup`, and Proxmox APT
 repository enablement for `no-subscription`, `enterprise`, `test`, and
@@ -486,6 +491,12 @@ oracle           hostname oracle        agent-id oracle-host         host only
 The OpenTofu-managed Tailscale policy allows only these three hosts to reach
 `pulse-pve:7655` for agent reporting. It does not grant SSH, HTTPS, or other
 Pulse LXC ports.
+
+`oracle` also runs the Hermes gateway as the dedicated `hermes` user under
+`hermes-gateway.service`. Arr stack runtime credentials for Hermes are stored
+only on Oracle in `/home/hermes/.hermes/arr-stack.env` and loaded through a
+systemd user drop-in; the gateway config allows those env names through
+`terminal.env_passthrough`.
 
 Each Docker Pulse agent has a separate API token with `docker:report`,
 `host-agent:config:read`, and `host-agent:report` scopes. The compose
