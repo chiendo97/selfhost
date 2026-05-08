@@ -455,3 +455,99 @@ resource "proxmox_virtual_environment_container" "pulse" {
     ]
   }
 }
+
+resource "proxmox_virtual_environment_container" "traefik_pve" {
+  node_name     = local.node_name
+  vm_id         = local.lxc_guests.traefik_pve.vm_id
+  tags          = local.lxc_guests.traefik_pve.tags
+  started       = true
+  start_on_boot = true
+  unprivileged  = local.lxc_guests.traefik_pve.unprivileged
+
+  console {
+    enabled   = true
+    tty_count = 2
+    type      = "tty"
+  }
+
+  cpu {
+    architecture = "amd64"
+    cores        = local.lxc_guests.traefik_pve.cores
+    limit        = 0
+  }
+
+  memory {
+    dedicated = local.lxc_guests.traefik_pve.memory
+    swap      = local.lxc_guests.traefik_pve.swap
+  }
+
+  disk {
+    datastore_id  = local.lxc_guests.traefik_pve.rootfs_datastore
+    mount_options = []
+    replicate     = false
+    size          = local.lxc_guests.traefik_pve.rootfs_size
+  }
+
+  features {
+    fuse    = local.lxc_guests.traefik_pve.features.fuse
+    keyctl  = local.lxc_guests.traefik_pve.features.keyctl
+    nesting = local.lxc_guests.traefik_pve.features.nesting
+  }
+
+  initialization {
+    hostname = local.lxc_guests.traefik_pve.hostname
+
+    dns {
+      servers = local.lxc_guests.traefik_pve.dns_servers
+    }
+
+    ip_config {
+      ipv4 {
+        address = local.lxc_guests.traefik_pve.ipv4_address
+        gateway = local.lxc_guests.traefik_pve.ipv4_gateway
+      }
+    }
+  }
+
+  dynamic "device_passthrough" {
+    for_each = local.lxc_guests.traefik_pve.devices
+
+    content {
+      path       = device_passthrough.value.path
+      gid        = device_passthrough.value.gid == null ? 0 : device_passthrough.value.gid
+      uid        = 0
+      mode       = device_passthrough.value.mode
+      deny_write = false
+    }
+  }
+
+  network_interface {
+    name         = "eth0"
+    bridge       = "vmbr0"
+    enabled      = true
+    firewall     = false
+    host_managed = false
+    mac_address  = local.lxc_guests.traefik_pve.mac_address
+    mtu          = 0
+    rate_limit   = 0
+    vlan_id      = 0
+  }
+
+  operating_system {
+    template_file_id = var.default_lxc_template_file_id
+    type             = "debian"
+  }
+
+  startup {
+    order      = local.lxc_guests.traefik_pve.startup_order
+    up_delay   = local.lxc_guests.traefik_pve.startup_up_delay
+    down_delay = -1
+  }
+
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes = [
+      operating_system[0].template_file_id,
+    ]
+  }
+}

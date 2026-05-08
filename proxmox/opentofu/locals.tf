@@ -219,5 +219,30 @@ locals {
       ]
       devices = []
     }
+
+    traefik_pve = {
+      vm_id              = 116
+      hostname           = "traefik-pve"
+      description        = "Traefik ingress LXC"
+      tags               = ["proxy"]
+      cores              = 2
+      memory             = 1024
+      swap               = 512
+      rootfs_datastore   = "fast-vm"
+      rootfs_size        = 8
+      mac_address        = "BC:24:11:50:01:16"
+      ipv4_address       = "192.168.50.247/24"
+      ipv4_gateway       = "192.168.50.1"
+      dns_servers        = ["1.1.1.1"]
+      startup_order      = 68
+      startup_up_delay   = 15
+      startup_down_delay = 0
+      unprivileged       = true
+      features           = { nesting = true, keyctl = true, fuse = true }
+      mount_points       = []
+      devices = [
+        { path = "/dev/net/tun", gid = null, mode = "0666" },
+      ]
+    }
   }
 }

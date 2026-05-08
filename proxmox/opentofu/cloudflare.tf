@@ -5,7 +5,7 @@ locals {
     wildcard = {
       name    = "*.chienlt.com"
       type    = "A"
-      content = "100.81.144.82"
+      content = "100.112.33.84"
       proxied = false
       ttl     = 1
     }
@@ -61,7 +61,7 @@ locals {
     plex = {
       name    = "plex.chienlt.com"
       type    = "A"
-      content = "100.81.144.82"
+      content = "100.112.33.84"
       proxied = false
       ttl     = 1
     }

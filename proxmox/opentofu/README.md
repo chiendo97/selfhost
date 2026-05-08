@@ -64,6 +64,7 @@ OpenTofuNasManage on /vms/112
 OpenTofuFrigateManage on /vms/113
 OpenTofuImmichManage on /vms/114
 OpenTofuBackupManage on /vms/115
+OpenTofuTraefikManage on /vms/116
 OpenTofuStorageManage on /storage/local
 OpenTofuStorageManage on /storage/local-zfs
 OpenTofuStorageManage on /storage/fast-vm
@@ -126,6 +127,7 @@ Current local state backup:
 
 ```text
 cle-pve:/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-200900
+cle-pve:/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260508-232851
 ```
 
 The backup directory is root-owned and mode `0700`. A matching `.sha256` file
@@ -159,6 +161,7 @@ The expected first plan should show imports for:
 113 frigate-pve
 114 immich-pve
 115 backup-pve
+116 traefik-pve
 ```
 
 Do not apply if the plan wants to create, replace, or destroy any guest.
@@ -272,6 +275,7 @@ n100
 oracle
 pulse_pve
 selfhost_pve
+traefik_pve
 ```
 
 OpenTofu also manages subnet/exit route enablement for:
@@ -290,14 +294,14 @@ hosts, and host runtime Tailscale config are still managed outside OpenTofu.
 OpenTofu tracks the current `chienlt.com` Cloudflare DNS records:
 
 ```text
-*.chienlt.com: A 100.81.144.82
+*.chienlt.com: A 100.112.33.84
 chienlt.com: A 100.104.100.77
 adguard.chienlt.com: A 100.107.99.32
 adguard-oracle.chienlt.com: A 168.138.176.219
 bazarr.chienlt.com: A 171.244.62.91
 jellyfin.chienlt.com: A 171.244.62.91
 jellyseerr.chienlt.com: A 171.244.62.91
-plex.chienlt.com: A 100.81.144.82
+plex.chienlt.com: A 100.112.33.84
 amz.chienlt.com: CNAME 9315ec0b-64d4-4744-a743-7bb0c2e35e45.cfargotunnel.com, proxied
 ```
 

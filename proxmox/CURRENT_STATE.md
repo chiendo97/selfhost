@@ -20,7 +20,7 @@ Last verified: 2026-05-08.
 |---:|---|---|---|---|
 | 100 | VM | `windows11` | stopped; last DHCP `192.168.50.227` | Imported Windows 11 VM from old Unraid disk image |
 | 101 | VM | `homelab-pve` | `192.168.50.130` | NixOS homelab host managed from dotfiles |
-| 121 | VM | `selfhost-pve` | `192.168.50.121`, tail `100.81.144.82` | NixOS Docker host for selfhost stack, Traefik, Homepage, Jellyseerr |
+| 121 | VM | `selfhost-pve` | `192.168.50.121`, tail `100.81.144.82` | NixOS Docker host for selfhost stack, Homepage, Jellyseerr |
 | 102 | LXC | `pulse` | `192.168.50.18` | Pulse monitoring |
 | 110 | LXC | `plex-pve` | `192.168.50.242` | Plex with Intel iGPU passthrough |
 | 111 | LXC | `jellyfin-pve` | `192.168.50.243`, tail `100.111.70.79` | Jellyfin with Intel iGPU passthrough |
@@ -28,6 +28,7 @@ Last verified: 2026-05-08.
 | 113 | LXC | `frigate-pve` | `192.168.50.245` | Frigate with Intel iGPU passthrough |
 | 114 | LXC | `immich-pve` | `192.168.50.246` | Immich with iGPU/OpenVINO |
 | 115 | LXC | `backup-pve` | `192.168.50.53` | Kopia backup server |
+| 116 | LXC | `traefik-pve` | `192.168.50.247`, tail `100.112.33.84` | Traefik ingress |
 
 Removed guests:
 
@@ -46,6 +47,7 @@ Current Proxmox LXC limits after tuning:
 | 113 | `frigate-pve` | 4 | 4096M | 1024M | 24G |
 | 114 | `immich-pve` | 6 | 4096M | 1024M | 32G |
 | 115 | `backup-pve` | 2 | 1536M | 512M | 8G |
+| 116 | `traefik-pve` | 2 | 1024M | 512M | 8G |
 
 Rootfs sizes are ZFS-backed and not shrunk during tuning. Memory and CPU limits
 are tuned conservatively from Proxmox day/week max usage, with extra headroom for
@@ -77,12 +79,15 @@ not for shrinking the VM below 8G during normal operation.
 113 frigate-pve   order=50, up=30
 114 immich-pve    order=60, up=45
 115 backup-pve    order=65, up=20
+116 traefik-pve   order=68, up=15
 121 selfhost-pve  order=70, up=45
 101 homelab-pve   order=80, up=30
 ```
 
-`nas-pve` starts before consumers of the media export. `selfhost-pve` starts
-after the app LXCs so Traefik and Homepage come up after their LAN backends.
+`nas-pve` starts before consumers of the media export. `traefik-pve` starts
+after the app LXCs and before `selfhost-pve`; its file-provider routes to LXC
+backends work before VM 121 starts, while Docker-backed VM 121 routes recover
+after the selfhost VM and published app ports are online.
 VM 100 `windows11` is intentionally stopped and not configured for host boot
 autostart.
 
@@ -98,7 +103,7 @@ plan no changes. Current
 Pulse-created Proxmox monitoring role, user, and token metadata are imported and
 plan no changes.
 
-Local OpenTofu state on this workstation tracks all 10 active guests plus the
+Local OpenTofu state on this workstation tracks all 11 active guests plus the
 live Tailscale policy, DNS config, stable device settings, selected route
 settings, platform settings, Cloudflare DNS records, and Pulse monitoring
 identity metadata, then verified a no-op follow-up plan. The state file and
@@ -109,6 +114,7 @@ A copy of the local state is backed up on `cle-pve`:
 ```text
 /tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-200900
 /tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260504-214447
+/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260508-232851
 ```
 
 Proxmox has user/token `opentofu@pve!cle-pve-adopt` for this adoption layer.
@@ -128,6 +134,7 @@ adjust the Pulse LXC memory limit:
 | 113 | `OpenTofuFrigateManage` |
 | 114 | `OpenTofuImmichManage` |
 | 115 | `OpenTofuBackupManage` |
+| 116 | `OpenTofuTraefikManage` |
 
 VM 101 has VM-scoped role `OpenTofuHomelabManage` with
 `VM.Audit,VM.Config.Disk,VM.Config.Options,VM.GuestAgent.Audit`. It does not
@@ -185,12 +192,13 @@ OpenTofu manages the full Tailscale policy from
 admin console or API will drift until copied back into that file.
 
 Tailscale `group:media-guests` currently contains
-`nguyenphuongthao9497@gmail.com`. It grants HTTPS access to VM 121 Traefik for
-Frigate and media services, direct Jellyfin tailnet service access, plus
+`nguyenphuongthao9497@gmail.com`. It grants HTTPS access to CT 116
+`traefik-pve` for Frigate and media services, direct Jellyfin tailnet service access, plus
 Tailscale SSH access to tagged servers:
 
 ```text
-selfhost-pve:443
+traefik-pve:443
+100.112.33.84:443
 jellyfin-pve:8096
 100.111.70.79:8096
 tag:server:22
@@ -200,7 +208,7 @@ tag:trusted:22
 The same policy tests deny other direct media backend ports, Dozzle/app ports
 on `jellyfin-pve`, and NAS/NFS access for `group:media-guests`. Tailscale ACLs
 are host-and-port based, so hostname separation for services behind
-`selfhost-pve:443` must come from Traefik or the applications themselves.
+`traefik-pve:443` must come from Traefik or the applications themselves.
 Tailscale SSH authorization is separately tested with `sshTests`.
 
 OpenTofu also manages Tailscale DNS as a full tailnet DNS resource:
@@ -214,7 +222,7 @@ Search paths: none
 
 The current stable Tailscale device tag/key-expiry resources cover
 `cle_viettel`, `homelab_pve`, `jellyfin_pve`, `n100`, `oracle`, `pulse_pve`,
-and `selfhost_pve`.
+`selfhost_pve`, and `traefik_pve`.
 
 OpenTofu also manages selected Tailscale route enablement:
 
@@ -239,10 +247,10 @@ selfhost-pve:6767
 Policy tests deny `cle-viettel-vpn` access to Jellyfin SSH, Dozzle agent, and
 other non-service ports.
 
-The OpenTofu-managed policy also grants `oracle` access to `selfhost-pve:443`
-so the Hermes gateway can reach VM 121 Traefik-hosted Arr APIs such as Radarr,
-Sonarr, and Prowlarr. Policy tests keep direct VM 121 SSH and direct Arr backend
-ports denied from `oracle`.
+The OpenTofu-managed policy also grants `oracle` access to `traefik-pve:443`
+so the Hermes gateway can reach Traefik-hosted Arr APIs such as Radarr, Sonarr,
+and Prowlarr. Policy tests keep direct VM 121 SSH, direct VM 121 HTTPS, and
+direct Arr backend ports denied from `oracle`.
 
 OpenTofu manages the Proxmox backup job `nightly-guests`, the storage
 definitions `local`, `local-zfs`, `fast-vm`, and `tank-backup`, and Proxmox APT
@@ -253,14 +261,14 @@ token metadata.
 OpenTofu also manages current `chienlt.com` Cloudflare DNS records:
 
 ```text
-*.chienlt.com -> 100.81.144.82
+*.chienlt.com -> 100.112.33.84
 chienlt.com -> 100.104.100.77
 adguard.chienlt.com -> 100.107.99.32
 adguard-oracle.chienlt.com -> 168.138.176.219
 bazarr.chienlt.com -> 171.244.62.91
 jellyfin.chienlt.com -> 171.244.62.91
 jellyseerr.chienlt.com -> 171.244.62.91
-plex.chienlt.com -> 100.81.144.82
+plex.chienlt.com -> 100.112.33.84
 amz.chienlt.com -> 9315ec0b-64d4-4744-a743-7bb0c2e35e45.cfargotunnel.com
 ```
 
@@ -347,6 +355,11 @@ Deleted migration datasets:
 115 backup-pve:
   /fast/immich-app -> /source/immich-app ro
   /tank/fast-backups -> /backups
+
+116 traefik-pve:
+  rootfs: fast-vm:subvol-116-disk-0,size=8G
+  /dev/net/tun passthrough for Tailscale
+  Traefik runtime state is inside CT rootfs at /srv/traefik
 ```
 
 There are no live PVE references to `/fast/selfhost`.
@@ -427,7 +440,13 @@ and is intentionally not applied.
 
 ## Public Routes
 
-VM 121 Traefik routes local/LXC services:
+CT 116 `traefik-pve` runs Traefik from `/srv/traefik/docker-compose.yml` with
+only `web` on `80/tcp`, `websecure` on `443/tcp`, the file provider, and the
+Cloudflare DNS ACME resolver. It is also on Tailscale as
+`traefik-pve.tail148f9.ts.net`, tagged `tag:trusted`, with tailnet address
+`100.112.33.84`.
+
+File-provider routes on `traefik-pve` route local/LXC services directly:
 
 | Public host | Backend |
 |---|---|
@@ -438,10 +457,44 @@ VM 121 Traefik routes local/LXC services:
 | `kopia.chienlt.com` | `http://192.168.50.53:51515` |
 | `bambuddy.chienlt.com` | `http://100.107.253.59:8000` |
 | `pulse.chienlt.com` | `http://192.168.50.18:7655` |
-| `homepage.chienlt.com` | Homepage container on VM 121 |
-| `dozzle.chienlt.com` | Dozzle container on VM 121 |
 
-Pulse local password auth is disabled on CT 102. VM 121 Traefik injects Pulse
+Docker-backed services on VM 121 are exposed to `traefik-pve` through direct
+host-bound Docker port publishes on LAN IP `192.168.50.121`. These high ports
+are intentionally bound to the LAN address rather than all interfaces. The old
+temporary `selfhost-route-bridge` nginx container has been stopped, removed,
+and archived at `/srv/selfhost/traefik-bridge.decom-20260508`.
+
+The old VM 121 Traefik container is stopped. Its service remains in
+`/srv/selfhost/docker-compose.yml` only behind the explicit `old-traefik`
+profile, so normal `docker compose up -d` does not restart it. The runtime
+backup from the profile change is
+`/srv/selfhost/docker-compose.yml.bak-traefik-lxc-20260508`.
+
+Important Docker-backed Traefik routes:
+
+| Public host | Backend |
+|---|---|
+| `homepage.chienlt.com` | `http://192.168.50.121:13000` |
+| `dozzle.chienlt.com` | `http://192.168.50.121:13001` |
+| `sonarr.chienlt.com` | `http://192.168.50.121:13002` |
+| `radarr.chienlt.com` | `http://192.168.50.121:13003` |
+| `prowlarr.chienlt.com` | `http://192.168.50.121:13004` |
+| `sabnzbd.chienlt.com` | `http://192.168.50.121:13005` |
+| `qbittorrent.chienlt.com` | `http://192.168.50.121:13006` |
+| `tautulli.chienlt.com` | `http://192.168.50.121:13007` |
+| `reclaimerr.chienlt.com` | `http://192.168.50.121:13008` |
+| `dockge.chienlt.com` | `http://192.168.50.121:13009` |
+| `filebrowser.chienlt.com` | `http://192.168.50.121:13010` |
+| `silverbullet.chienlt.com` | `http://192.168.50.121:13011` |
+| `speedtest-tracker.chienlt.com` | `http://192.168.50.121:13012` |
+| `dockhand.chienlt.com` | `http://192.168.50.121:13013` |
+| `hledger-webapp.chienlt.com` | `http://192.168.50.121:13014` |
+| `openspeedtest.chienlt.com` | `http://192.168.50.121:13015` |
+| `bazarr.chienlt.com` | `http://192.168.50.121:13016` |
+| `syncthing.chienlt.com` | `http://192.168.50.121:13017` |
+| `seerr.chienlt.com`, `jellyseerr.chienlt.com` | `http://192.168.50.121:13018` |
+
+Pulse local password auth is disabled on CT 102. CT 116 Traefik injects Pulse
 proxy-auth headers for `pulse.chienlt.com`, so the UI opens as proxy user
 `cle`. Direct backend or tailnet access can load the UI shell, but
 authenticated API calls are not proxy-authenticated without the Traefik headers.
@@ -570,12 +623,11 @@ Tailscale:
 | `jellyfin.chienlt.com` | `http://100.111.70.79:8096` |
 | `jellyseerr.chienlt.com` | `http://100.81.144.82:5056` |
 | `bazarr.chienlt.com` | `http://100.81.144.82:6767` |
-| `plex.chienlt.com` | `http://100.104.100.77:32400` |
 | `timthuoc.chienlt.com` | `http://100.67.251.63:8501` |
 
 The OpenTofu-managed tailnet policy grants `cle-viettel-vpn` only the required
-Jellyfin and VM 121 media ports. `plex.chienlt.com` and `timthuoc.chienlt.com`
-currently resolve to tailnet addresses, not the public VPS IP.
+Jellyfin and VM 121 media ports. `timthuoc.chienlt.com` currently resolves to a
+tailnet address, not the public VPS IP.
 
 `cle-viettel` hardening as of 2026-05-04:
 

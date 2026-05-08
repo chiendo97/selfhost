@@ -53,6 +53,7 @@ Included guests because `all=1`:
 113 frigate-pve
 114 immich-pve
 115 backup-pve
+116 traefik-pve
 ```
 
 Backup storage:
@@ -74,6 +75,7 @@ CT112 nas-pve: 272M
 CT113 frigate-pve: 2.0G
 CT114 immich-pve: 2.0G
 CT115 backup-pve: 302M
+CT116 traefik-pve: not yet observed in a completed nightly archive
 ```
 
 Important limitation: `vzdump` does not back up LXC bind mounts. It backs up

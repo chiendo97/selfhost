@@ -41,6 +41,12 @@ locals {
       tags                = ["tag:trusted"]
       key_expiry_disabled = true
     }
+
+    traefik_pve = {
+      node_id             = "nKKyDKkqs521CNTRL"
+      tags                = ["tag:trusted"]
+      key_expiry_disabled = true
+    }
   }
 
   tailscale_route_devices = {

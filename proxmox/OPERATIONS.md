@@ -60,6 +60,35 @@ docker compose up -d <service>
 There is intentionally no `selfhost-compose.service`. Containers rely on Docker
 restart policies after boot. Run Compose manually when definitions change.
 
+VM 121 publishes Docker-backed Traefik backends directly on LAN-bound high
+ports:
+
+```bash
+ssh selfhost-pve 'ss -ltn | awk '\''NR==1 || /192\\.168\\.50\\.121:13/'\'''
+ssh cle-pve 'pct exec 116 -- curl -fsS -I --max-time 8 http://192.168.50.121:13000'
+```
+
+The old VM 121 Traefik service is behind the `old-traefik` profile. Start it
+only for rollback:
+
+```bash
+ssh selfhost-pve 'cd /srv/selfhost && docker compose --profile old-traefik up -d traefik'
+```
+
+## Traefik LXC
+
+```bash
+ssh cle-pve 'pct exec 116 -- sh -lc "cd /srv/traefik && docker compose ps"'
+ssh cle-pve 'pct exec 116 -- sh -lc "cd /srv/traefik && docker compose logs -f traefik"'
+ssh cle-pve 'pct exec 116 -- sh -lc "tailscale status; tailscale ip -4"'
+```
+
+Dry-run a route before DNS changes:
+
+```bash
+ssh cle-pve 'pct exec 116 -- curl -k --resolve frigate.chienlt.com:443:192.168.50.247 https://frigate.chienlt.com/api/version'
+```
+
 ## NixOS Rebuilds
 
 Dotfiles source:

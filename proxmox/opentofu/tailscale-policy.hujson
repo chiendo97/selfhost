@@ -28,6 +28,7 @@
 		"n100":            "100.107.253.59",
 		"jellyfin-pve":    "100.111.70.79",
 		"selfhost-pve":    "100.81.144.82",
+		"traefik-pve":     "100.112.33.84",
 	},
 
 	"acls": [
@@ -105,10 +106,10 @@
 			"dst": ["host:n100"],
 			"ip":  ["8086"],
 		},
-		// --- Hermes gateway: oracle -> selfhost Traefik for Arr APIs ---
+		// --- Hermes gateway: oracle -> Traefik for Arr APIs ---
 		{
 			"src": ["host:oracle"],
-			"dst": ["host:selfhost-pve"],
+			"dst": ["host:traefik-pve"],
 			"ip":  ["443"],
 		},
 		{
@@ -144,10 +145,10 @@
 			"dst": ["host:pulse-pve"],
 			"ip":  ["7655"],
 		},
-		// --- Guest media: Thao -> selfhost Traefik ---
+		// --- Guest media: Thao -> Traefik ---
 		{
 			"src": ["group:media-guests"],
-			"dst": ["host:selfhost-pve"],
+			"dst": ["host:traefik-pve"],
 			"ip":  ["443"],
 		},
 		// --- Guest media: Thao -> Jellyfin direct tailnet ---
@@ -164,11 +165,13 @@
 			"accept": [
 				"tag:server:22",
 				"tag:trusted:22",
-				"selfhost-pve:443",
+				"traefik-pve:443",
+				"100.112.33.84:443",
 				"jellyfin-pve:8096",
 				"100.111.70.79:8096",
 			],
 			"deny": [
+				"selfhost-pve:443",
 				"selfhost-pve:5056",
 				"192.168.50.242:32400",
 				"192.168.50.245:5000",
@@ -216,12 +219,13 @@
 			"src": "host:oracle",
 			"accept": [
 				"pulse-pve:7655",
-				"selfhost-pve:443",
+				"traefik-pve:443",
 			],
 			"deny": [
 				"pulse-pve:22",
 				"pulse-pve:443",
 				"selfhost-pve:22",
+				"selfhost-pve:443",
 				"selfhost-pve:7878",
 				"selfhost-pve:8989",
 				"selfhost-pve:9696",

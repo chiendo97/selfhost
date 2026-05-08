@@ -2,6 +2,34 @@
 
 ## 2026-05-08
 
+- Created CT 116 `traefik-pve` at `192.168.50.247`, installed Docker Engine
+  with the Compose plugin plus Tailscale, joined it as tagged tailnet node
+  `traefik-pve` (`100.112.33.84`), copied the existing Traefik rules and ACME
+  state, and started a file-provider-only Traefik instance on ports `80/443`.
+- Added VM 121 runtime bridge container `selfhost-route-bridge` under
+  `/srv/selfhost/traefik-bridge`, publishing LAN-only ports
+  `192.168.50.121:13000-13018` for Docker-backed routes now that Traefik no
+  longer shares VM 121's Docker network. Verified forced-resolution HTTPS
+  checks for Frigate, Homepage, Dozzle, Sonarr, Radarr, Immich, Proxmox, and
+  Pulse through the new LXC.
+- Replaced the temporary VM 121 route bridge with direct LAN-bound Docker port
+  publishes on the app containers themselves, keeping the same
+  `192.168.50.121:13000-13018` backend URLs for Traefik. Stopped and removed
+  `selfhost-route-bridge`, archived its runtime directory to
+  `/srv/selfhost/traefik-bridge.decom-20260508`, and backed up the edited VM
+  121 compose file to
+  `/srv/selfhost/docker-compose.yml.bak-direct-published-routes-20260508`.
+- Stopped the old VM 121 Traefik container and put its compose service behind
+  the explicit `old-traefik` profile so a normal `docker compose up -d` on
+  `/srv/selfhost` does not restart it. The VM 121 runtime compose backup is
+  `/srv/selfhost/docker-compose.yml.bak-traefik-lxc-20260508`.
+- Updated OpenTofu inventory, Tailscale policy/device metadata, and Cloudflare
+  DNS intent so `*.chienlt.com` and `plex.chienlt.com` point to
+  `traefik-pve`'s Tailscale IP, with `oracle` and `group:media-guests` granted
+  HTTPS to `traefik-pve:443` instead of VM 121 Traefik. Backed up local
+  OpenTofu state to
+  `/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260508-232851`
+  before applying; the follow-up plan was no-op.
 - Moved the shared zk notebook from VM 121 root storage to the Proxmox fast
   dataset `fast/zk`, bind-mounted it into CT 112 `nas-pve` at `/shares/zk`,
   and exported it as NFSv4 path `/zk` for `nixos-cle`, `homelab-pve`, and

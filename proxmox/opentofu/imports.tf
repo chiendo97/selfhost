@@ -44,6 +44,11 @@ import {
 }
 
 import {
+  to = proxmox_virtual_environment_container.traefik_pve
+  id = "cle-pve/116"
+}
+
+import {
   to = tailscale_acl.policy
   id = "acl"
 }
@@ -89,6 +94,11 @@ import {
 }
 
 import {
+  to = tailscale_device_tags.stable["traefik_pve"]
+  id = "nKKyDKkqs521CNTRL"
+}
+
+import {
   to = tailscale_device_key.stable["cle_viettel"]
   id = "nosd1P9MZd11CNTRL"
 }
@@ -121,6 +131,11 @@ import {
 import {
   to = tailscale_device_key.stable["selfhost_pve"]
   id = "nxFxxZ5oC311CNTRL"
+}
+
+import {
+  to = tailscale_device_key.stable["traefik_pve"]
+  id = "nKKyDKkqs521CNTRL"
 }
 
 import {
