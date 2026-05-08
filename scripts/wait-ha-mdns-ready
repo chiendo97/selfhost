@@ -1,0 +1,101 @@
+#!/usr/bin/python3
+"""Wait until IPv4 mDNS multicast is usable for Home Assistant startup."""
+
+from __future__ import annotations
+
+import argparse
+import socket
+import subprocess
+import sys
+import time
+
+
+MDNS_ADDR = "224.0.0.251"
+MDNS_PORT = 5353
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--timeout", type=float, default=60.0)
+    parser.add_argument("--interval", type=float, default=1.0)
+    return parser.parse_args()
+
+
+def local_global_ipv4s() -> set[str]:
+    result = subprocess.run(
+        ["/usr/bin/ip", "-o", "-4", "addr", "show", "scope", "global"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    addresses: set[str] = set()
+    for line in result.stdout.splitlines():
+        parts = line.split()
+        if "inet" not in parts:
+            continue
+        cidr = parts[parts.index("inet") + 1]
+        addresses.add(cidr.split("/", 1)[0])
+    return addresses
+
+
+def mdns_source_ip() -> str | None:
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        sock.connect((MDNS_ADDR, MDNS_PORT))
+        return sock.getsockname()[0]
+    except OSError:
+        return None
+    finally:
+        sock.close()
+
+
+def can_join_mdns_group(source_ip: str) -> tuple[bool, str | None]:
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        membership = socket.inet_aton(MDNS_ADDR) + socket.inet_aton(source_ip)
+        sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, membership)
+        sock.setsockopt(socket.IPPROTO_IP, socket.IP_DROP_MEMBERSHIP, membership)
+    except OSError as exc:
+        return False, f"{exc.__class__.__name__}: {exc}"
+    finally:
+        sock.close()
+    return True, None
+
+
+def ready() -> tuple[bool, str]:
+    source_ip = mdns_source_ip()
+    if source_ip is None:
+        return False, f"no source route for {MDNS_ADDR}"
+    if source_ip == "0.0.0.0" or source_ip.startswith("127."):
+        return False, f"mDNS source route is not a usable LAN address: {source_ip}"
+
+    local_addrs = local_global_ipv4s()
+    if source_ip not in local_addrs:
+        return False, f"{source_ip} is not present in local global IPv4 addresses"
+
+    joined, error = can_join_mdns_group(source_ip)
+    if not joined:
+        return False, f"cannot join {MDNS_ADDR} from {source_ip}: {error}"
+
+    return True, f"{MDNS_ADDR} ready via {source_ip}"
+
+
+def main() -> int:
+    args = parse_args()
+    deadline = time.monotonic() + args.timeout
+    last_status = ""
+
+    while True:
+        ok, status = ready()
+        last_status = status
+        if ok:
+            print(status)
+            return 0
+        if time.monotonic() >= deadline:
+            print(f"timed out waiting for IPv4 mDNS readiness: {last_status}", file=sys.stderr)
+            return 1
+        time.sleep(args.interval)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

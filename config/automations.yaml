@@ -1,19 +1,42 @@
 - id: '1777987272956'
   alias: Roborock finished cleaning Telegram map
-  description: When the Roborock returns to dock after a cleaning run, capture the
-    calibrated Roborock Custom Map image and send it to Telegram via Cle's Bot.
+  description: When Roborock reports a new last-clean-end timestamp, wait until it
+    is truly finished (docked, charging/charge-complete, and no longer cleaning) before
+    snapshotting the calibrated map and sending it to Telegram. This avoids false
+    notifications during mid-run mop washing/docking and ignores stale startup restores.
   triggers:
-  - entity_id: vacuum.roborock_qrevo_edge_series
-    from: returning
-    platform: state
-    to: docked
-  - entity_id: vacuum.roborock_qrevo_edge_series
-    from: cleaning
-    platform: state
-    to: docked
+  - platform: state
+    entity_id: sensor.roborock_qrevo_edge_series_last_clean_end
+    id: last_clean_end_changed
+  conditions:
+  - condition: template
+    value_template: '{{ trigger.from_state is not none and trigger.to_state is not
+      none and trigger.from_state.state not in [''unknown'', ''unavailable'', ''none'',
+      ''''] and trigger.to_state.state not in [''unknown'', ''unavailable'', ''none'',
+      ''''] and trigger.from_state.state != trigger.to_state.state and as_timestamp(trigger.to_state.state,
+      0) > 0 and (as_timestamp(now()) - as_timestamp(trigger.to_state.state, 0)) <=
+      900 }}'
   actions:
+  - wait_template: '{{ is_state(''vacuum.roborock_qrevo_edge_series'', ''docked'')
+      and is_state(''binary_sensor.roborock_qrevo_edge_series_cleaning'', ''off'')
+      and states(''sensor.roborock_qrevo_edge_series_status'') in [''charging'', ''charging_complete'']
+      }}'
+    timeout:
+      hours: 4
+    continue_on_timeout: false
   - delay:
-      seconds: 5
+      minutes: 2
+  - condition: state
+    entity_id: vacuum.roborock_qrevo_edge_series
+    state: docked
+  - condition: state
+    entity_id: binary_sensor.roborock_qrevo_edge_series_cleaning
+    state: 'off'
+  - condition: state
+    entity_id: sensor.roborock_qrevo_edge_series_status
+    state:
+    - charging
+    - charging_complete
   - action: image.snapshot
     data:
       filename: /tmp/roborock_last_cleaning_map.jpg
@@ -31,3 +54,4 @@
       parse_mode: plain_text
   initial_state: true
   mode: single
+  max_exceeded: silent

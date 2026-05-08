@@ -5,6 +5,8 @@
 !config/
 !config/configuration.yaml
 !config/automations.yaml
+!scripts/
+!scripts/wait-ha-mdns-ready
 !quadlet/
 !quadlet/**
 !proxmox/

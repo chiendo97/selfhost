@@ -498,6 +498,17 @@ only on Oracle in `/home/hermes/.hermes/arr-stack.env` and loaded through a
 systemd user drop-in; the gateway config allows those env names through
 `terminal.env_passthrough`.
 
+`oracle` also runs Uptime Kuma v2 as user `ubuntu` through the rootless Podman
+Quadlet `~/.config/containers/systemd/uptime-kuma.container`, generated as
+`uptime-kuma.service`. The UI is Tailscale-only at
+`http://100.79.39.73:3001`. Declarative monitors live in
+`/home/ubuntu/Source/selfhost/uptime-kuma/monitors.yaml` and are applied by
+`setup_monitors.py` with credentials from the runtime `.env`, which is not
+tracked here. Kuma includes TCP port monitors for AdGuard DNS on
+`oracle:53` and `cle-viettel-vpn:53`. The Frigate HTTP monitor remains
+configured but inactive because `https://frigate.chienlt.com/api/health`
+currently returns HTTP 404.
+
 Each Docker Pulse agent has a separate API token with `docker:report`,
 `host-agent:config:read`, and `host-agent:report` scopes. The compose
 healthcheck is disabled because the public Pulse image carries the server

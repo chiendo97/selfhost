@@ -1,5 +1,22 @@
 # cle-pve Infrastructure Changelog
 
+## 2026-05-07
+
+- Checked Uptime Kuma on `oracle`: the rootless Podman Quadlet
+  `uptime-kuma.service` is active and published on `3001/tcp`. Added
+  declarative `port` monitor support to Oracle's runtime
+  `/home/ubuntu/Source/selfhost/uptime-kuma/setup_monitors.py` and provisioned
+  two Kuma monitors for AdGuard DNS on `oracle:53` and
+  `cle-viettel-vpn:53`. Runtime backups were written beside the edited files as
+  `setup_monitors.py.bak-20260507-adguard-port` and
+  `monitors.yaml.bak-20260507-adguard-port`.
+- Disabled the existing Frigate Uptime Kuma HTTP monitor after it repeatedly
+  returned HTTP 404 from `https://frigate.chienlt.com/api/health`. Oracle's
+  runtime `monitors.yaml` now marks it `active: false`, and
+  `setup_monitors.py` now honors `active: false` by pausing existing monitors.
+  Runtime backups were written as `monitors.yaml.bak-20260507-disable-frigate`
+  and `setup_monitors.py.bak-20260507-disable-frigate`.
+
 ## 2026-05-05
 
 - Added a narrow OpenTofu-managed Tailscale grant for `oracle` to reach

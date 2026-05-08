@@ -13,6 +13,7 @@ Volume=%t/dbus-proxy/system_bus_socket:/run/dbus/system_bus_socket
 Environment=TZ=Asia/Ho_Chi_Minh
 
 [Service]
+ExecStartPre=/home/cle/Source/selfhost/scripts/wait-ha-mdns-ready --timeout 90
 Restart=always
 TimeoutStartSec=900
 
