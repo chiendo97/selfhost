@@ -4,7 +4,8 @@
 
 - Moved the shared zk notebook from VM 121 root storage to the Proxmox fast
   dataset `fast/zk`, bind-mounted it into CT 112 `nas-pve` at `/shares/zk`,
-  and exported it as NFSv4 path `/zk` for `homelab-pve` and `selfhost-pve`.
+  and exported it as NFSv4 path `/zk` for `nixos-cle`, `homelab-pve`, and
+  `selfhost-pve`.
 - Updated NixOS/Home Manager consumers to use `/srv/selfhost/zk` as the shared
   notebook path.
 

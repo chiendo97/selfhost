@@ -361,6 +361,7 @@ NFS:
 /shares        192.168.50.0/24 ro, fsid=0, crossmnt
 /shares/media  192.168.50.121 rw
 /shares/media  192.168.50.0/24 ro
+/shares/zk     192.168.50.55 rw
 /shares/zk     192.168.50.130 rw
 /shares/zk     192.168.50.121 rw
 ```
@@ -379,7 +380,8 @@ read only = no
 valid users = @nas-users
 ```
 
-VM 121 mounts media and zk from `nas-pve`; VM 101 mounts zk from `nas-pve`:
+VM 121 mounts media and zk from `nas-pve`; VM 101 and `nixos-cle` mount zk
+from `nas-pve`:
 
 ```text
 192.168.50.244:/media /mnt/user/media nfs4 rw,_netdev,nofail,x-systemd.automount,x-systemd.idle-timeout=0,vers=4.2 0 0
