@@ -166,9 +166,7 @@
 				"tag:server:22",
 				"tag:trusted:22",
 				"traefik-pve:443",
-				"100.112.33.84:443",
 				"jellyfin-pve:8096",
-				"100.111.70.79:8096",
 			],
 			"deny": [
 				"selfhost-pve:443",
