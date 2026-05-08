@@ -331,14 +331,18 @@ resource "proxmox_virtual_environment_container" "nas_pve" {
     }
   }
 
-  mount_point {
-    volume        = "/tank/media"
-    path          = "/shares/media"
-    read_only     = false
-    backup        = false
-    mount_options = []
-    replicate     = true
-    shared        = false
+  dynamic "mount_point" {
+    for_each = local.lxc_guests.nas_pve.mount_points
+
+    content {
+      volume        = mount_point.value.volume
+      path          = mount_point.value.path
+      read_only     = mount_point.value.read_only
+      backup        = false
+      mount_options = []
+      replicate     = true
+      shared        = false
+    }
   }
 
   network_interface {

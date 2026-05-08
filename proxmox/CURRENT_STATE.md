@@ -1,6 +1,6 @@
 # cle-pve Current State
 
-Last verified: 2026-05-04.
+Last verified: 2026-05-08.
 
 ## Host
 
@@ -24,7 +24,7 @@ Last verified: 2026-05-04.
 | 102 | LXC | `pulse` | `192.168.50.18` | Pulse monitoring |
 | 110 | LXC | `plex-pve` | `192.168.50.242` | Plex with Intel iGPU passthrough |
 | 111 | LXC | `jellyfin-pve` | `192.168.50.243`, tail `100.111.70.79` | Jellyfin with Intel iGPU passthrough |
-| 112 | LXC | `nas-pve` | `192.168.50.244` | NFS/Samba media export for VM 121 |
+| 112 | LXC | `nas-pve` | `192.168.50.244` | NFS/Samba shared data export |
 | 113 | LXC | `frigate-pve` | `192.168.50.245` | Frigate with Intel iGPU passthrough |
 | 114 | LXC | `immich-pve` | `192.168.50.246` | Immich with iGPU/OpenVINO |
 | 115 | LXC | `backup-pve` | `192.168.50.53` | Kopia backup server |
@@ -303,6 +303,7 @@ Important ZFS datasets:
 |---|---|
 | `fast/vm` | Proxmox VM/LXC disks |
 | `fast/immich-app` | Live Immich app data, mounted into CT 114 and CT 115 |
+| `fast/zk` | Shared zk notebook data, exported by CT 112 |
 | `fast/selfhost-decom-20260501` | Read-only rollback copy of old selfhost/appdata |
 | `fast/domains` | Old Unraid VM images; `Windows11/vdisk1.img` was imported into VM 100 |
 | `tank/media` | Media library |
@@ -334,6 +335,7 @@ Deleted migration datasets:
 
 112 nas-pve:
   /tank/media -> /shares/media
+  /fast/zk -> /shares/zk
 
 113 frigate-pve:
   /tank/frigate/storage -> /media/frigate
@@ -351,7 +353,7 @@ There are no live PVE references to `/fast/selfhost`.
 
 ## NAS Export
 
-`nas-pve` exports only media.
+`nas-pve` exports media and the shared zk notebook.
 
 NFS:
 
@@ -359,6 +361,8 @@ NFS:
 /shares        192.168.50.0/24 ro, fsid=0, crossmnt
 /shares/media  192.168.50.121 rw
 /shares/media  192.168.50.0/24 ro
+/shares/zk     192.168.50.130 rw
+/shares/zk     192.168.50.121 rw
 ```
 
 Samba:
@@ -368,12 +372,18 @@ Samba:
 path = /shares/media
 read only = yes
 valid users = @nas-users
+
+[zk]
+path = /shares/zk
+read only = no
+valid users = @nas-users
 ```
 
-VM 121 mounts only the media export:
+VM 121 mounts media and zk from `nas-pve`; VM 101 mounts zk from `nas-pve`:
 
 ```text
-192.168.50.244:/media /mnt/user/media nfs4 rw,_netdev,nofail,x-systemd.automount,x-systemd.idle-timeout=600,vers=4.2 0 0
+192.168.50.244:/media /mnt/user/media nfs4 rw,_netdev,nofail,x-systemd.automount,x-systemd.idle-timeout=0,vers=4.2 0 0
+192.168.50.244:/zk /srv/selfhost/zk nfs4 rw,_netdev,nofail,x-systemd.automount,x-systemd.idle-timeout=0,vers=4.2 0 0
 ```
 
 VM 121 no longer mounts `/mnt/user/frigate` or `/mnt/user/selfhost`.

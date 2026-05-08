@@ -35,11 +35,12 @@ Current critical facts:
 
 - Proxmox host: `cle-pve`, LAN `192.168.50.13`.
 - VM 121: `selfhost-pve`, LAN `192.168.50.121`, tail `100.81.144.82`.
-- VM 121 still needs `/mnt/user/media` from `nas-pve`; do not decommission
-  `nas-pve` unless that workflow is replaced.
+- VM 121 still needs `/mnt/user/media` and `/srv/selfhost/zk` from `nas-pve`;
+  do not decommission `nas-pve` unless those workflows are replaced.
 - `fast/selfhost` is decommissioned; rollback copy is
   `fast/selfhost-decom-20260501`.
 - Immich live data is `/fast/immich-app`.
+- The shared zk notebook data is `/fast/zk`, exported by `nas-pve`.
 - Frigate recordings are `/tank/frigate/storage`.
 - Proxmox guest backups are managed by job `nightly-guests`.
 - Kopia in CT 115 backs up Immich photos from `/source/immich-app/photos`.

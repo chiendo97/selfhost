@@ -1,6 +1,6 @@
 # cle-pve Backups
 
-Last verified: 2026-05-01.
+Last verified: 2026-05-08.
 
 ## Policy
 
@@ -79,6 +79,11 @@ CT115 backup-pve: 302M
 Important limitation: `vzdump` does not back up LXC bind mounts. It backs up
 the guest rootfs and PVE config. This means Immich photos under
 `/fast/immich-app` need the Kopia layer.
+
+The shared zk notebook now lives on `/fast/zk` and is bind-mounted into
+`nas-pve`, then NFS-mounted by `homelab-pve` and `selfhost-pve`. It is not
+covered by Proxmox guest backups unless a separate dataset backup policy is
+added.
 
 Plex, Jellyfin, and Frigate config now live inside their LXC rootfs volumes, so
 they are covered by the Proxmox guest backups.

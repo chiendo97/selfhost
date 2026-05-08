@@ -126,7 +126,7 @@ locals {
     nas_pve = {
       vm_id              = 112
       hostname           = "nas-pve"
-      description        = "NFS/Samba media export for VM 121"
+      description        = "NFS/Samba shared data export"
       tags               = []
       cores              = 1
       memory             = 512
@@ -141,6 +141,7 @@ locals {
       features           = { nesting = true, keyctl = false, fuse = false }
       mount_points = [
         { volume = "/tank/media", path = "/shares/media", read_only = false },
+        { volume = "/fast/zk", path = "/shares/zk", read_only = false },
       ]
       devices = []
     }
