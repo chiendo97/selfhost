@@ -6,6 +6,7 @@ Wants=network-online.target
 [Container]
 ContainerName=obico-ml-api
 Image=ghcr.io/gabe565/obico/ml-api:latest
+AutoUpdate=registry
 HostName=ml_api
 PublishPort=127.0.0.1:3333:3333
 Environment=DEBUG=True

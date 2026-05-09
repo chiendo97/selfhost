@@ -1,0 +1,7 @@
+[Unit]
+Description=Podman auto-update
+Documentation=man:podman-auto-update(1)
+
+[Service]
+Type=oneshot
+ExecStart=%h/.nix-profile/bin/podman auto-update

@@ -6,6 +6,7 @@ Wants=network-online.target
 [Container]
 ContainerName=mqtt
 Image=docker.io/library/eclipse-mosquitto:2.0
+AutoUpdate=registry
 User=0:0
 Volume=/home/cle/Source/selfhost/mosquitto-data:/mosquitto
 PublishPort=1883:1883

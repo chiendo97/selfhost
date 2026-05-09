@@ -7,6 +7,7 @@ Requires=trmnl-byos-postgres.service
 [Container]
 ContainerName=trmnl-byos
 Image=ghcr.io/usetrmnl/byos_next:0.2.2
+AutoUpdate=registry
 Network=trmnl-byos.network
 EnvironmentFile=/home/cle/Source/selfhost/trmnl-byos.env
 PublishPort=3000:3000

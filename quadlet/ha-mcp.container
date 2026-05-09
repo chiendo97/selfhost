@@ -6,6 +6,7 @@ Wants=network-online.target
 [Container]
 ContainerName=ha-mcp
 Image=ghcr.io/homeassistant-ai/ha-mcp:latest
+AutoUpdate=registry
 EnvironmentFile=/home/cle/Source/selfhost/ha-mcp.env
 PublishPort=8086:8086
 Exec=ha-mcp-web

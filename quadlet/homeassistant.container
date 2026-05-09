@@ -7,6 +7,7 @@ Requires=mqtt.service dbus-proxy.service
 [Container]
 ContainerName=homeassistant
 Image=ghcr.io/home-assistant/home-assistant:latest
+AutoUpdate=registry
 Network=host
 Volume=/home/cle/Source/selfhost/config:/config
 Volume=%t/dbus-proxy/system_bus_socket:/run/dbus/system_bus_socket

@@ -6,6 +6,7 @@ Wants=network-online.target
 [Container]
 ContainerName=mqtt-explorer
 Image=docker.io/smeagolworms4/mqtt-explorer:latest
+AutoUpdate=registry
 Volume=/home/cle/Source/selfhost/mqtt-explorer/config:/mqtt-explorer/config
 PublishPort=4000:4000
 

@@ -6,6 +6,7 @@ Wants=network-online.target
 [Container]
 ContainerName=bambuddy
 Image=ghcr.io/maziggy/bambuddy:latest
+AutoUpdate=registry
 Network=host
 User=1000:1000
 UserNS=keep-id

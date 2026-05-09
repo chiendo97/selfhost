@@ -7,6 +7,7 @@ Requires=mqtt.service
 [Container]
 ContainerName=zigbee2mqtt
 Image=docker.io/koenkk/zigbee2mqtt:latest
+AutoUpdate=registry
 Network=host
 GroupAdd=keep-groups
 Volume=/home/cle/Source/selfhost/zigbee2mqtt-data:/app/data

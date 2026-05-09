@@ -9,6 +9,10 @@
 !scripts/wait-ha-mdns-ready
 !quadlet/
 !quadlet/**
+!systemd/
+!systemd/user/
+!systemd/user/podman-auto-update.service
+!systemd/user/podman-auto-update.timer
 !proxmox/
 !proxmox/*.md
 !proxmox/opentofu/
