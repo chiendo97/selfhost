@@ -5,6 +5,7 @@ http:
   use_x_forwarded_for: true
   trusted_proxies:
     - 100.89.182.96
+    - 100.112.33.84
 
 logger:
   default: info

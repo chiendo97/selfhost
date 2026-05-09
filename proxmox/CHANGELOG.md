@@ -1,5 +1,18 @@
 # cle-pve Infrastructure Changelog
 
+## 2026-05-09
+
+- Updated VM 121 live Homepage config so the Traefik card no longer references
+  the stopped VM 121 Docker Traefik container or unavailable dashboard widget.
+  It now monitors the CT 116 `traefik-pve` ingress path through
+  `https://frigate.chienlt.com/api/version`. The runtime backup is
+  `/srv/selfhost/homepage/config/services.yaml.bak-traefik-lxc-card-20260509`.
+- Removed the stale Tdarr card from VM 121 live Homepage config and corrected
+  the AdGuard cards. `AdGuard Home (Viettel)` monitors
+  `100.107.99.32:82`, and `AdGuard Home (Oracle)` keeps the working
+  tailnet-only `100.79.39.73:81` endpoint. The runtime backup is
+  `/srv/selfhost/homepage/config/services.yaml.bak-tdarr-adguard-20260509`.
+
 ## 2026-05-08
 
 - Created CT 116 `traefik-pve` at `192.168.50.247`, installed Docker Engine
