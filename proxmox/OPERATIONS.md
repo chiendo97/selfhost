@@ -75,6 +75,35 @@ only for rollback:
 ssh selfhost-pve 'cd /srv/selfhost && docker compose --profile old-traefik up -d traefik'
 ```
 
+## VM 122 Bazzite Gaming
+
+VM 122 is a Bazzite gaming VM with RTX 3060 passthrough attached.
+VM Secure Boot is disabled via `efidisk0` `pre-enrolled-keys=0`.
+
+Current config checks:
+
+```bash
+ssh cle-pve 'qm config 122'
+ssh cle-pve 'qm status 122'
+ssh -i ~/.ssh/id_ed25519_selfhost cle@192.168.50.8 'hostname; nvidia-smi'
+```
+
+RTX 3060 passthrough checks:
+
+```bash
+ssh cle-pve 'lspci -nnk -s 01:00.0; lspci -nnk -s 01:00.1'
+ssh cle-pve 'qm config 122 | grep -E "^(hostpci[0-9]|vga|boot|efidisk0|scsi0|memory):"'
+```
+
+Expected GPU/audio state:
+
+```text
+vga: none
+01:00.0 GPU   10de:2504  Kernel driver in use: vfio-pci
+01:00.1 audio 10de:228e  Kernel driver in use: vfio-pci
+IOMMU group 15 contains only 01:00.0 and 01:00.1
+```
+
 ## Traefik LXC
 
 ```bash

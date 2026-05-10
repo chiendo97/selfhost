@@ -7,7 +7,7 @@ setup.
 
 Current scope:
 
-- all existing guests are imported into local OpenTofu state;
+- all pre-existing guests are imported into local OpenTofu state;
 - all current LXCs and both NixOS VMs are tightened and plan no changes without
   blanket `ignore_changes = all`;
 - the live Tailscale tailnet policy is imported and managed from
@@ -31,6 +31,9 @@ OpenTofu does not yet own:
   properties;
 - Tailscale device lifecycle, auth keys, or device authorization;
 - NixOS, Home Manager, Docker, Traefik, Homepage, or app config.
+- VM 122 `bazzite-gaming`, which was created manually on 2026-05-10 with
+  Bazzite and RTX 3060 passthrough. It should be adopted after the final VM
+  settings are settled.
 
 Those stay in the current manual/docs flow until the later Ansible layer is
 added.

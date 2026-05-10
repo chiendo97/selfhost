@@ -1,6 +1,6 @@
 # cle-pve Current State
 
-Last verified: 2026-05-08.
+Last verified: 2026-05-10.
 
 ## Host
 
@@ -9,10 +9,23 @@ Last verified: 2026-05-08.
 | Hostname | `cle-pve` |
 | LAN IP | `192.168.50.13` |
 | Proxmox | `pve-manager/9.1.9` |
-| Kernel | `6.17.13-4-pve` |
+| Kernel | `6.17.13-6-pve` |
 | Access | `ssh cle-pve` |
 | UI | `https://192.168.50.13:8006` |
 | Swap | 16G zram via `zram-swap.service`, `vm.swappiness=10` |
+
+Host PCI passthrough is configured for the installed RTX 3060:
+
+- UEFI boot through `proxmox-boot-tool`, Secure Boot disabled.
+- Kernel command line includes `intel_iommu=on intel_iommu=sp_off iommu=pt`.
+- `/etc/modules-load.d/vfio.conf` loads `vfio`, `vfio_iommu_type1`, and
+  `vfio_pci`.
+- `/etc/modprobe.d/blacklist-nvidia-host.conf` blacklists `nouveau` and
+  NVIDIA host drivers so the RTX 3060 stays available for passthrough.
+- `/etc/modprobe.d/vfio-pci-rtx3060.conf` binds `10de:2504` and `10de:228e`
+  to `vfio-pci`.
+- RTX 3060 GPU `0000:01:00.0` and HDMI audio `0000:01:00.1` are isolated
+  together in IOMMU group 15 and both use `vfio-pci`.
 
 ## Guests
 
@@ -21,6 +34,7 @@ Last verified: 2026-05-08.
 | 100 | VM | `windows11` | stopped; last DHCP `192.168.50.227` | Imported Windows 11 VM from old Unraid disk image |
 | 101 | VM | `homelab-pve` | `192.168.50.130` | NixOS homelab host managed from dotfiles |
 | 121 | VM | `selfhost-pve` | `192.168.50.121`, tail `100.81.144.82` | NixOS Docker host for selfhost stack, Homepage, Jellyseerr |
+| 122 | VM | `bazzite-gaming` | DHCP `192.168.50.8` | Bazzite gaming VM with RTX 3060 passthrough |
 | 102 | LXC | `pulse` | `192.168.50.18` | Pulse monitoring |
 | 110 | LXC | `plex-pve` | `192.168.50.242` | Plex with Intel iGPU passthrough |
 | 111 | LXC | `jellyfin-pve` | `192.168.50.243`, tail `100.111.70.79` | Jellyfin with Intel iGPU passthrough |
@@ -69,6 +83,59 @@ VM 121 `selfhost-pve` has virtio balloon statistics enabled with the balloon
 target equal to the full 8G allocation. This is for Proxmox memory reporting,
 not for shrinking the VM below 8G during normal operation.
 
+## Bazzite Gaming VM
+
+VM 122 `bazzite-gaming` runs Bazzite with RTX 3060 passthrough:
+
+| Item | Value |
+|---|---|
+| VMID | `122` |
+| Guest hostname | `bazzite-gaming` |
+| Guest IP | DHCP `192.168.50.8` at last check |
+| Firmware / machine | OVMF, `pc-q35-10.1` |
+| CPU | 8 vCPU, `host` |
+| Memory | 8G dedicated, ballooning disabled |
+| Boot disk | `fast-vm:vm-122-disk-1`, 128G, virtio-scsi, discard, SSD flag |
+| EFI / TPM | `fast-vm` EFI disk with `pre-enrolled-keys=0`, TPM 2.0 state |
+| Network | virtio on `vmbr0`, firewall enabled, MAC `BC:24:11:50:01:22` |
+| VGA | none; RTX 3060 is the display path |
+| Passthrough GPU | `hostpci0: 0000:01:00.0,pcie=1,x-vga=1` |
+| Passthrough audio | `hostpci1: 0000:01:00.1,pcie=1` |
+| CD-ROM | none; Bazzite ISO remains available in `local` ISO storage |
+| Boot order | `scsi0` |
+| Autostart | disabled |
+| Protection | enabled |
+| Tags | `bazzite,gaming` |
+
+The installer ISO used for setup is the stable Bazzite NVIDIA Open live ISO for
+newer NVIDIA cards. It is stored in Proxmox ISO storage but is not currently
+attached to VM 122:
+
+```text
+local:iso/bazzite-nvidia-open-stable-live-amd64.iso
+```
+
+The ISO was downloaded and verified with SHA256:
+
+```text
+970a99236ee5d21c8826a0d853a5bd7da44f2d5c69782515eafb5db78338b110
+```
+
+The RTX 3060 is installed as GA106 LHR GPU `10de:2504` plus HDMI audio
+`10de:228e`; both functions are in IOMMU group 15 and bound to `vfio-pci`.
+Inside Bazzite, `nvidia-smi` confirms `NVIDIA GeForce RTX 3060`, driver
+`595.71.05`, and 12G VRAM after a clean VM reboot. Key-based SSH from this
+workstation uses `~/.ssh/id_ed25519_selfhost`.
+
+The temporary virtio VGA fallback was removed after another clean reboot and
+successful `nvidia-smi` check.
+
+VM Secure Boot is disabled (`efidisk0` has `pre-enrolled-keys=0`) because
+Bazzite failed to boot with `bad shim signature` before Universal Blue's Secure
+Boot key was enrolled. Re-enable Secure Boot only after intentionally completing
+Bazzite MOK enrollment. The original Secure Boot-enabled EFI vars disk was
+removed after the non-Secure-Boot boot path was confirmed.
+
 ## Boot Order
 
 ```text
@@ -89,25 +156,28 @@ after the app LXCs and before `selfhost-pve`; its file-provider routes to LXC
 backends work before VM 121 starts, while Docker-backed VM 121 routes recover
 after the selfhost VM and published app ports are online.
 VM 100 `windows11` is intentionally stopped and not configured for host boot
-autostart.
+autostart. VM 122 `bazzite-gaming` is intentionally not configured for host
+boot autostart while the new gaming VM is still being validated.
 
 ## IaC
 
 OpenTofu adoption has started under `proxmox/opentofu` in this repo. All current
 LXCs, both NixOS VMs, VM 100 `windows11`, the Tailscale tailnet policy,
 Tailscale DNS config, and stable Tailscale device tags/key-expiry/route settings
-are now imported or managed and plan no changes. The current Proxmox backup job,
+are now imported or managed and plan no changes. VM 122 `bazzite-gaming` is the
+current exception and is pending adoption. The current Proxmox backup job,
 storage definitions, and Proxmox APT repository enablement are also imported and
-plan no changes. Current
-`chienlt.com` Cloudflare DNS records are imported and plan no changes. The
-Pulse-created Proxmox monitoring role, user, and token metadata are imported and
-plan no changes.
+plan no changes. Current `chienlt.com` Cloudflare DNS records are imported and
+plan no changes. The Pulse-created Proxmox monitoring role, user, and token
+metadata are imported and plan no changes.
 
-Local OpenTofu state on this workstation tracks all 11 active guests plus the
-live Tailscale policy, DNS config, stable device settings, selected route
-settings, platform settings, Cloudflare DNS records, and Pulse monitoring
-identity metadata, then verified a no-op follow-up plan. The state file and
-local token env files are ignored by git.
+Local OpenTofu state on this workstation tracks the pre-existing active guests
+plus the live Tailscale policy, DNS config, stable device settings, selected
+route settings, platform settings, Cloudflare DNS records, and Pulse monitoring
+identity metadata, then verified a no-op follow-up plan. VM 122
+`bazzite-gaming` was created manually on 2026-05-10 and is pending OpenTofu
+adoption after the final VM settings are settled. The state file and local token
+env files are ignored by git.
 
 A copy of the local state is backed up on `cle-pve`:
 

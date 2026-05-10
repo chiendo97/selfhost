@@ -10,6 +10,40 @@
 - Added CT 115 `backup-pve` read-only access to `/fast/zk` at `/source/zk` and
   added a Kopia policy for `root@backup-pve:/source/zk`, so the shared zk
   notebook is covered by the local Kopia repository.
+- Created stopped VM 122 `bazzite-gaming` as a Bazzite install shell for future
+  RTX 3060 passthrough: OVMF/q35, 8 vCPU host CPU, 8G dedicated RAM with
+  ballooning disabled, 128G `fast-vm` virtio-scsi boot disk, TPM 2.0, virtio
+  network, temporary virtio VGA, autostart disabled, and protection enabled.
+  Downloaded and SHA256-verified the stable Bazzite NVIDIA Open live ISO,
+  attached it as `ide2`, and set boot order to ISO first. OpenTofu adoption is
+  deferred until the GPU PCI IDs/IOMMU group and final resource sizing are
+  known.
+- Verified the installed RTX 3060 as GA106 LHR GPU `10de:2504` at
+  `0000:01:00.0` with HDMI audio `10de:228e` at `0000:01:00.1`, both isolated
+  in IOMMU group 15. Persisted exact `vfio-pci` binding in
+  `/etc/modprobe.d/vfio-pci-rtx3060.conf`, regenerated initramfs images,
+  refreshed `proxmox-boot-tool`, live-bound both functions to `vfio-pci`, and
+  attached them to VM 122 as `hostpci0` and `hostpci1`. VM 122 remains stopped.
+- Detached the Bazzite ISO from VM 122 and changed boot order to `scsi0`; the
+  verified ISO remains in Proxmox `local` ISO storage.
+- Disabled VM 122 Secure Boot by changing its EFI disk to `pre-enrolled-keys=0`
+  after Bazzite hit `bad shim signature` before Universal Blue MOK enrollment.
+  VM 122 was restarted and remains configured with RTX 3060 passthrough.
+- Recreated VM 122's EFI vars disk as `fast-vm:vm-122-disk-3` with no
+  pre-enrolled keys after the existing EFI vars store kept the old Secure Boot
+  state. The original EFI disk remains attached as `unused0` for rollback until
+  the non-Secure-Boot boot path is confirmed.
+- Verified VM 122 after a clean reboot: Bazzite boots as `bazzite-gaming`,
+  key-based SSH works for `cle@192.168.50.8`, and `nvidia-smi` reports
+  `NVIDIA GeForce RTX 3060` with driver `595.71.05` and 12G VRAM.
+- Removed VM 122's old unused Secure Boot EFI disk and disabled the temporary
+  virtio VGA fallback. After reboot, VM 122 returned on SSH and `nvidia-smi`
+  still reported the RTX 3060 successfully.
+- Prepared `cle-pve` for future RTX 3060 VM passthrough by adding VFIO module
+  autoload config and a host NVIDIA/nouveau driver blacklist, then regenerated
+  initramfs images and refreshed `proxmox-boot-tool` UEFI entries. Exact
+  `vfio-pci ids=` binding is deferred until the card is installed and its PCI
+  IDs/IOMMU group are verified.
 - Upgraded CT 102 `pulse` from Pulse `v5.1.30` stable to `v6.0.0-rc.4` on
   the `rc` update channel, with unattended auto-updates still disabled. The
   initial signed installer path failed release signature verification before
