@@ -500,6 +500,10 @@ proxy-auth headers for `pulse.chienlt.com`, so the UI opens as proxy user
 authenticated API calls are not proxy-authenticated without the Traefik headers.
 Pulse API token auth remains enabled for agents.
 
+CT 102 runs Pulse server `v6.0.0-rc.4` on the `rc` update channel, with
+unattended auto-updates disabled. `/bin/update` is the Pulse
+installer-managed helper for manual server updates.
+
 CT 102 also runs Tailscale `1.96.4` as `pulse-pve.tail148f9.ts.net`, tagged
 `tag:server`, with tailnet address `100.86.86.121`. The LXC has
 `/dev/net/tun` passthrough so Tailscale runs in normal tunnel mode. Tailscale

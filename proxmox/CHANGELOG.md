@@ -1,5 +1,20 @@
 # cle-pve Infrastructure Changelog
 
+## 2026-05-10
+
+- Upgraded CT 102 `pulse` from Pulse `v5.1.30` stable to `v6.0.0-rc.4` on
+  the `rc` update channel, with unattended auto-updates still disabled. The
+  initial signed installer path failed release signature verification before
+  replacing the binary; the successful run used the official RC4 Linux amd64
+  archive after matching its published SHA256. Runtime config backups were
+  written as `/etc/pulse.backup.20260510-180010` and
+  `/etc/pulse.backup.20260510-180150`.
+- Replaced CT 102's legacy Community Scripts `/bin/update` wrapper with the
+  Pulse installer-managed update helper. Verified `pulse.service` active,
+  internal `/api/health`, and public `https://pulse.chienlt.com/api/version`,
+  `/api/monitoring/scheduler/health`, and `/api/resources` through Traefik.
+  Existing Pulse agents remain on their prior versions for now.
+
 ## 2026-05-09
 
 - Updated VM 121 live Homepage config so the Traefik card no longer references
