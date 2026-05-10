@@ -221,8 +221,8 @@ Search paths: none
 ```
 
 The current stable Tailscale device tag/key-expiry resources cover
-`cle_viettel`, `homelab_pve`, `jellyfin_pve`, `n100`, `oracle`, `pulse_pve`,
-`selfhost_pve`, and `traefik_pve`.
+`cle_viettel`, `homelab_pve`, `jellyfin_pve`, `n100`, `nas_pve`, `oracle`,
+`pulse_pve`, `selfhost_pve`, and `traefik_pve`.
 
 OpenTofu also manages selected Tailscale route enablement:
 
@@ -249,8 +249,9 @@ other non-service ports.
 
 The OpenTofu-managed policy also grants `oracle` access to `traefik-pve:443`
 so the Hermes gateway can reach Traefik-hosted Arr APIs such as Radarr, Sonarr,
-and Prowlarr. Policy tests keep direct VM 121 SSH, direct VM 121 HTTPS, and
-direct Arr backend ports denied from `oracle`.
+and Prowlarr. It also grants `oracle` access to `nas-pve:2049` so Hermes can
+mount the shared zk notebook. Policy tests keep direct VM 121 SSH, direct VM 121
+HTTPS, and direct Arr backend ports denied from `oracle`.
 
 OpenTofu manages the Proxmox backup job `nightly-guests`, the storage
 definitions `local`, `local-zfs`, `fast-vm`, and `tank-backup`, and Proxmox APT
@@ -344,6 +345,7 @@ Deleted migration datasets:
 112 nas-pve:
   /tank/media -> /shares/media
   /fast/zk -> /shares/zk
+  /dev/net/tun passthrough for Tailscale
 
 113 frigate-pve:
   /tank/frigate/storage -> /media/frigate
@@ -378,6 +380,7 @@ NFS:
 /shares/zk     192.168.50.55 rw
 /shares/zk     192.168.50.130 rw
 /shares/zk     192.168.50.121 rw
+/shares/zk     100.79.39.73 rw, all_squash, anonuid=1000, anongid=100
 ```
 
 Samba:
@@ -395,11 +398,12 @@ valid users = @nas-users
 ```
 
 VM 121 mounts media and zk from `nas-pve`; VM 101 and `nixos-cle` mount zk
-from `nas-pve`:
+from `nas-pve`. Oracle mounts zk over Tailscale for Hermes:
 
 ```text
 192.168.50.244:/media /mnt/user/media nfs4 rw,_netdev,nofail,x-systemd.automount,x-systemd.idle-timeout=0,vers=4.2 0 0
 192.168.50.244:/zk /srv/selfhost/zk nfs4 rw,_netdev,nofail,x-systemd.automount,x-systemd.idle-timeout=0,vers=4.2 0 0
+nas-pve:/zk /home/hermes/zk nfs4 rw,_netdev,nofail,x-systemd.automount,x-systemd.idle-timeout=0,x-systemd.after=tailscaled.service,x-systemd.requires=tailscaled.service,vers=4.2,proto=tcp 0 0
 ```
 
 VM 121 no longer mounts `/mnt/user/frigate` or `/mnt/user/selfhost`.
@@ -566,7 +570,10 @@ Pulse LXC ports.
 `hermes-gateway.service`. Arr stack runtime credentials for Hermes are stored
 only on Oracle in `/home/hermes/.hermes/arr-stack.env` and loaded through a
 systemd user drop-in; the gateway config allows those env names through
-`terminal.env_passthrough`.
+`terminal.env_passthrough`. Oracle mounts the shared zk notebook read-write at
+`/home/hermes/zk`; `nas-pve` maps Oracle NFS writes to UID `1000` and GID `100`
+so Hermes can edit the existing notebook files without changing their ownership
+model.
 
 `oracle` also runs Uptime Kuma v2 as user `ubuntu` through the rootless Podman
 Quadlet `~/.config/containers/systemd/uptime-kuma.container`, generated as

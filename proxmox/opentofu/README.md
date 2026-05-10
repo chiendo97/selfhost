@@ -272,6 +272,7 @@ cle_viettel
 homelab_pve
 jellyfin_pve
 n100
+nas_pve
 oracle
 pulse_pve
 selfhost_pve

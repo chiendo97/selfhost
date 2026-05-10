@@ -26,6 +26,7 @@
 		"pulse-pve":       "100.86.86.121",
 		"ts-mcp":          "100.65.93.82",
 		"n100":            "100.107.253.59",
+		"nas-pve":         "100.96.17.125",
 		"jellyfin-pve":    "100.111.70.79",
 		"selfhost-pve":    "100.81.144.82",
 		"traefik-pve":     "100.112.33.84",
@@ -105,6 +106,12 @@
 			"src": ["host:oracle"],
 			"dst": ["host:n100"],
 			"ip":  ["8086"],
+		},
+		// --- Hermes gateway: oracle -> nas-pve shared zk notebook ---
+		{
+			"src": ["host:oracle"],
+			"dst": ["host:nas-pve"],
+			"ip":  ["2049"],
 		},
 		// --- Hermes gateway: oracle -> Traefik for Arr APIs ---
 		{
@@ -217,6 +224,7 @@
 			"src": "host:oracle",
 			"accept": [
 				"pulse-pve:7655",
+				"nas-pve:2049",
 				"traefik-pve:443",
 			],
 			"deny": [

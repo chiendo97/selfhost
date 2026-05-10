@@ -24,6 +24,12 @@ locals {
       key_expiry_disabled = true
     }
 
+    nas_pve = {
+      node_id             = "nicY2e3rFB11CNTRL"
+      tags                = ["tag:server"]
+      key_expiry_disabled = true
+    }
+
     oracle = {
       node_id             = "nWvSuVVhZ321CNTRL"
       tags                = ["tag:server"]

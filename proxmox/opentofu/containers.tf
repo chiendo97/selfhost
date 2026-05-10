@@ -355,6 +355,18 @@ resource "proxmox_virtual_environment_container" "nas_pve" {
     }
   }
 
+  dynamic "device_passthrough" {
+    for_each = local.lxc_guests.nas_pve.devices
+
+    content {
+      path       = device_passthrough.value.path
+      gid        = device_passthrough.value.gid == null ? 0 : device_passthrough.value.gid
+      uid        = 0
+      mode       = device_passthrough.value.mode
+      deny_write = false
+    }
+  }
+
   network_interface {
     name         = "eth0"
     bridge       = "vmbr0"

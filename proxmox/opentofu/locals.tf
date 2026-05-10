@@ -143,7 +143,9 @@ locals {
         { volume = "/tank/media", path = "/shares/media", read_only = false },
         { volume = "/fast/zk", path = "/shares/zk", read_only = false },
       ]
-      devices = []
+      devices = [
+        { path = "/dev/net/tun", gid = null, mode = "0666" },
+      ]
     }
 
     frigate_pve = {

@@ -185,6 +185,7 @@ Check exports:
 
 ```bash
 ssh cle-pve 'pct exec 112 -- exportfs -v'
+ssh cle-pve 'pct exec 112 -- tailscale status --self'
 ```
 
 Check VM121 media mount:
@@ -197,6 +198,13 @@ Write test from VM121:
 
 ```bash
 ssh cle-pve 'qm guest exec 121 -- /bin/sh -lc "p=/mnt/user/media/.vm121-nfs-write-test; echo test > $p; rm -f $p"'
+```
+
+Check Oracle Hermes zk mount:
+
+```bash
+ssh oracle 'findmnt /home/hermes/zk'
+ssh oracle 'sudo -u hermes sh -lc "p=/home/hermes/zk/.hermes-rw-test; echo test > $p; rm -f $p"'
 ```
 
 ## Backups

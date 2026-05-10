@@ -79,6 +79,11 @@ import {
 }
 
 import {
+  to = tailscale_device_tags.stable["nas_pve"]
+  id = "nicY2e3rFB11CNTRL"
+}
+
+import {
   to = tailscale_device_tags.stable["oracle"]
   id = "nWvSuVVhZ321CNTRL"
 }
@@ -116,6 +121,11 @@ import {
 import {
   to = tailscale_device_key.stable["n100"]
   id = "n3HGNPp9Nk11CNTRL"
+}
+
+import {
+  to = tailscale_device_key.stable["nas_pve"]
+  id = "nicY2e3rFB11CNTRL"
 }
 
 import {

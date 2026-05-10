@@ -2,6 +2,11 @@
 
 ## 2026-05-10
 
+- Added Tailscale to CT 112 `nas-pve` as tagged host `nas-pve`
+  (`100.96.17.125`) and added a narrow OpenTofu-managed grant for
+  `oracle -> nas-pve:2049`. Exported `/shares/zk` read-write to Oracle's tail
+  IP with `all_squash,anonuid=1000,anongid=100`, then mounted it read-write for
+  Hermes at `/home/hermes/zk`.
 - Added CT 115 `backup-pve` read-only access to `/fast/zk` at `/source/zk` and
   added a Kopia policy for `root@backup-pve:/source/zk`, so the shared zk
   notebook is covered by the local Kopia repository.
