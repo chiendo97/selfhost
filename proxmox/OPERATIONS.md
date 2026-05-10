@@ -104,6 +104,25 @@ vga: none
 IOMMU group 15 contains only 01:00.0 and 01:00.1
 ```
 
+Sunshine checks:
+
+```bash
+ssh -i ~/.ssh/id_ed25519_selfhost cle@192.168.50.8 'ujust setup-sunshine status'
+ssh -i ~/.ssh/id_ed25519_selfhost cle@192.168.50.8 'systemctl --user status homebrew.sunshine.service --no-pager'
+ssh -i ~/.ssh/id_ed25519_selfhost cle@192.168.50.8 'journalctl --user -u homebrew.sunshine.service -b --no-pager | grep -E "Found monitor|Found H\\.264|Found HEVC|Permission denied|Fatal"'
+curl -k -L --max-time 8 -sS -o /dev/null -w '%{http_code} %{url_effective}\n' https://192.168.50.8:47990
+```
+
+Expected Sunshine state:
+
+```text
+`ujust setup-sunshine status` returns `enable`.
+`homebrew.sunshine.service` is active in the `cle` graphical session.
+The RTX 3060 has an HDMI dummy plug connected as `HDMI-A-1`.
+Sunshine logs show H.264 and HEVC encoders through NVENC.
+The web UI redirects to `https://192.168.50.8:47990/welcome` for first setup.
+```
+
 ## Traefik LXC
 
 ```bash

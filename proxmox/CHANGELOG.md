@@ -39,6 +39,17 @@
 - Removed VM 122's old unused Secure Boot EFI disk and disabled the temporary
   virtio VGA fallback. After reboot, VM 122 returned on SSH and `nvidia-smi`
   still reported the RTX 3060 successfully.
+- Installed and enabled Sunshine on VM 122 through Bazzite's
+  `ujust setup-sunshine enable` Homebrew path. Enabled Plasma autologin for
+  `cle`, moved the Sunshine user unit to `graphical-session.target`, connected
+  an HDMI dummy plug, and verified Sunshine sees `HDMI-A-1`, detects H.264/HEVC
+  NVENC, listens on `47984/47989/47990/48010`, and serves the first-run web UI
+  at `https://192.168.50.8:47990/welcome`.
+- Removed an accidentally staged temporary `video=DP-1:1920x1080MR@60e`
+  virtual-display kernel argument from VM 122 after the HDMI dummy plug was
+  connected. Added a local `input` group entry for `cle` plus
+  `/etc/tmpfiles.d/sunshine-uhid.conf` so `/dev/uhid` remains accessible for
+  Sunshine controller emulation.
 - Prepared `cle-pve` for future RTX 3060 VM passthrough by adding VFIO module
   autoload config and a host NVIDIA/nouveau driver blacklist, then regenerated
   initramfs images and refreshed `proxmox-boot-tool` UEFI entries. Exact

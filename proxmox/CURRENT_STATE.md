@@ -106,6 +106,7 @@ VM 122 `bazzite-gaming` runs Bazzite with RTX 3060 passthrough:
 | Autostart | disabled |
 | Protection | enabled |
 | Tags | `bazzite,gaming` |
+| Sunshine | enabled via `ujust setup-sunshine enable`, web UI `https://192.168.50.8:47990` |
 
 The installer ISO used for setup is the stable Bazzite NVIDIA Open live ISO for
 newer NVIDIA cards. It is stored in Proxmox ISO storage but is not currently
@@ -129,6 +130,17 @@ workstation uses `~/.ssh/id_ed25519_selfhost`.
 
 The temporary virtio VGA fallback was removed after another clean reboot and
 successful `nvidia-smi` check.
+
+Sunshine runs as the `cle` user through the Homebrew-generated
+`homebrew.sunshine.service` user unit. The unit is enabled under
+`graphical-session.target` rather than `default.target`, and Plasma autologin is
+enabled for `cle` so Sunshine starts after a real Wayland desktop session exists.
+An HDMI dummy plug is connected to the RTX 3060; Bazzite sees it as
+`HDMI-A-1`/`Ugreen Group Ltd. UGREEN`, and Sunshine detects H.264/HEVC NVENC on
+that display. VM 122 has no custom `video=` kernel argument for virtual display
+forcing. For Sunshine controller support, `cle` is a member of local group
+`input`, and `/etc/tmpfiles.d/sunshine-uhid.conf` keeps `/dev/uhid` owned by
+`root:input` with mode `0660`.
 
 VM Secure Boot is disabled (`efidisk0` has `pre-enrolled-keys=0`) because
 Bazzite failed to boot with `bad shim signature` before Universal Blue's Secure
