@@ -223,7 +223,8 @@ Kopia status:
 
 ```bash
 ssh cle-pve 'pct exec 115 -- systemctl status kopia-server.service --no-pager'
-ssh cle-pve 'pct exec 115 -- bash -lc ". /root/kopia-secrets.env && kopia snapshot list --all"'
+ssh cle-pve 'pct exec 115 -- bash -lc ". /root/kopia-secrets.env && kopia --config-file=/etc/kopia/repository.config policy list"'
+ssh cle-pve 'pct exec 115 -- bash -lc ". /root/kopia-secrets.env && kopia --config-file=/etc/kopia/repository.config snapshot list --all"'
 ```
 
 ## Adding A New VM Or LXC

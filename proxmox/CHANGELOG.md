@@ -2,6 +2,9 @@
 
 ## 2026-05-10
 
+- Added CT 115 `backup-pve` read-only access to `/fast/zk` at `/source/zk` and
+  added a Kopia policy for `root@backup-pve:/source/zk`, so the shared zk
+  notebook is covered by the local Kopia repository.
 - Upgraded CT 102 `pulse` from Pulse `v5.1.30` stable to `v6.0.0-rc.4` on
   the `rc` update channel, with unattended auto-updates still disabled. The
   initial signed installer path failed release signature verification before

@@ -216,6 +216,7 @@ locals {
       mount_points = [
         { volume = "/fast/immich-app", path = "/source/immich-app", read_only = true },
         { volume = "/tank/fast-backups", path = "/backups", read_only = false },
+        { volume = "/fast/zk", path = "/source/zk", read_only = true },
       ]
       devices = []
     }

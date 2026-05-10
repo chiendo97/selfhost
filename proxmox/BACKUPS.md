@@ -1,14 +1,14 @@
 # cle-pve Backups
 
-Last verified: 2026-05-08.
+Last verified: 2026-05-10.
 
 ## Policy
 
 There are two active backup layers:
 
 1. Proxmox `vzdump` backs up all VM/LXC root disks and guest configs.
-2. Kopia backs up Immich photos and Immich database dumps from
-   `/fast/immich-app/photos`.
+2. Kopia backs up Immich photos/database dumps from `/fast/immich-app/photos`
+   and the shared zk notebook from `/fast/zk`.
 
 Large media stores are intentionally not backed up locally:
 
@@ -84,13 +84,12 @@ the guest rootfs and PVE config. This means Immich photos under
 
 The shared zk notebook now lives on `/fast/zk` and is bind-mounted into
 `nas-pve`, then NFS-mounted by `homelab-pve` and `selfhost-pve`. It is not
-covered by Proxmox guest backups unless a separate dataset backup policy is
-added.
+covered by Proxmox guest backups, so Kopia backs it up from CT 115.
 
 Plex, Jellyfin, and Frigate config now live inside their LXC rootfs volumes, so
 they are covered by the Proxmox guest backups.
 
-## Kopia Immich Backup
+## Kopia Dataset Backups
 
 Kopia runs inside CT 115 `backup-pve`.
 
@@ -107,6 +106,7 @@ CT mounts:
 
 ```text
 /fast/immich-app -> /source/immich-app ro
+/fast/zk -> /source/zk ro
 /tank/fast-backups -> /backups
 ```
 
@@ -114,7 +114,8 @@ Active Kopia policies:
 
 ```text
 global
-root@backup-pve:/source/immich-app/photos
+root@backup-pve:/source/immich-app/photos  snapshot time 03:00
+root@backup-pve:/source/zk                 snapshot time 03:15
 ```
 
 Retention:
@@ -159,13 +160,13 @@ ssh cle-pve 'pvesm list tank-backup --content backup'
 List Kopia snapshots:
 
 ```bash
-ssh cle-pve 'pct exec 115 -- bash -lc ". /root/kopia-secrets.env && kopia snapshot list --all"'
+ssh cle-pve 'pct exec 115 -- bash -lc ". /root/kopia-secrets.env && kopia --config-file=/etc/kopia/repository.config snapshot list --all"'
 ```
 
 Restore a Kopia snapshot to staging:
 
 ```bash
-ssh cle-pve 'pct exec 115 -- bash -lc ". /root/kopia-secrets.env && mkdir -p /restore-test && kopia restore <snapshot-id> /restore-test/<name>"'
+ssh cle-pve 'pct exec 115 -- bash -lc ". /root/kopia-secrets.env && mkdir -p /restore-test && kopia --config-file=/etc/kopia/repository.config restore <snapshot-id> /restore-test/<name>"'
 ```
 
 After validation, stop the relevant application and copy files back

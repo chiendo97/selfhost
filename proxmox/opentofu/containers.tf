@@ -264,6 +264,16 @@ resource "proxmox_virtual_environment_container" "backup_pve" {
     shared        = false
   }
 
+  mount_point {
+    volume        = "/fast/zk"
+    path          = "/source/zk"
+    read_only     = true
+    backup        = false
+    mount_options = []
+    replicate     = true
+    shared        = false
+  }
+
   network_interface {
     name         = "eth0"
     bridge       = "vmbr0"

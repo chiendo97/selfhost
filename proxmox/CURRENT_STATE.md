@@ -311,7 +311,7 @@ Important ZFS datasets:
 |---|---|
 | `fast/vm` | Proxmox VM/LXC disks |
 | `fast/immich-app` | Live Immich app data, mounted into CT 114 and CT 115 |
-| `fast/zk` | Shared zk notebook data, exported by CT 112 |
+| `fast/zk` | Shared zk notebook data, exported by CT 112 and backed up by CT 115 |
 | `fast/selfhost-decom-20260501` | Read-only rollback copy of old selfhost/appdata |
 | `fast/domains` | Old Unraid VM images; `Windows11/vdisk1.img` was imported into VM 100 |
 | `tank/media` | Media library |
@@ -354,6 +354,7 @@ Deleted migration datasets:
 
 115 backup-pve:
   /fast/immich-app -> /source/immich-app ro
+  /fast/zk -> /source/zk ro
   /tank/fast-backups -> /backups
 
 116 traefik-pve:
