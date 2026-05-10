@@ -55,3 +55,31 @@
   initial_state: true
   mode: single
   max_exceeded: silent
+- id: '1778343944881'
+  alias: Roborock dock clean water box alert
+  description: When the Roborock dock clean water box problem sensor turns on, send
+    a Telegram notification and create a Todoist task to fill/check the clean water
+    tank.
+  triggers:
+  - platform: state
+    entity_id: binary_sensor.roborock_qrevo_edge_series_dock_clean_water_box
+    from: 'off'
+    to: 'on'
+  conditions: []
+  actions:
+  - action: notify.send_message
+    target:
+      entity_id: notify.cle_s_bot_chien_le
+    data:
+      title: Roborock needs water
+      message: Roborock dock clean water box problem is active. Please fill/check
+        the clean water tank.
+  - target:
+      entity_id: todo.inbox
+    data:
+      item: Fill/check Roborock clean water tank
+      description: Created by Home Assistant because binary_sensor.roborock_qrevo_edge_series_dock_clean_water_box
+        changed to on.
+      due_date: '{{ now().date().isoformat() }}'
+    action: todo.add_item
+  mode: single
