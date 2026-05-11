@@ -2,6 +2,20 @@
 
 ## 2026-05-11
 
+- Tuned CT 102 Pulse alerts after reviewing the previous 48 hours of alert
+  history. Wrote a live backup to
+  `/etc/pulse/alerts.json.backup-alert-tuning-20260511-152432`, migrated the
+  SMART disk temperature threshold to the Pulse v6 `agentDefaults` schema at
+  `65/60 C`, raised `cle-viettel` memory alerting to `90/85%`, suppressed
+  intentional powered-off alerts for `windows11` and `bazzite-gaming`, raised
+  Docker update alert delay to 72 hours, set alert cooldown to 15 minutes, and
+  enabled flapping protection. Verified the active alert set dropped to only
+  the existing `cle-pve` node memory warning.
+- Raised the CT 102 Pulse `cle-pve` node memory override from `90/85%` to
+  `95/90%` after the host remained slightly above the previous warning
+  threshold. Wrote a live backup to
+  `/etc/pulse/alerts.json.backup-pve-memory-95-20260511-152703` and verified
+  Pulse reported no active alerts afterward.
 - Enabled Tailscale on VM 122 `bazzite-gaming` through Bazzite's `ujust
   tailscale enable` recipe. The existing stored auth keys in `proxmox/.env`
   were stale, so a short-lived one-off `tag:trusted` auth key was minted with

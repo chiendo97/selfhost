@@ -620,8 +620,17 @@ tags and key-expiry settings for `pulse_pve` are imported into OpenTofu.
 Pulse alert notifications are active. CT 102 stores the enabled `Telegram
 Alerts` webhook encrypted at `/etc/pulse/webhooks.enc`; the Telegram bot token
 and chat ID are sourced from local `.env.local` during setup and are not stored
-in the repo. Host-agent SMART disk temperature alerts trigger at `65 C` and
-clear at `60 C`.
+in the repo. Pulse v6 host-agent SMART disk temperature alerts are configured
+through `agentDefaults.diskTemperature` and trigger at `65 C`, clearing at
+`60 C`.
+
+Pulse alert delivery has a 15-minute cooldown and flapping protection enabled
+with a 5-minute window, 5 state changes to detect flapping, and a 15-minute
+flapping cooldown. Docker image update alerts fire only after an available
+update has persisted for 72 hours. Resource overrides suppress intentional
+powered-off/connectivity alerts for VM 100 `windows11` and VM 122
+`bazzite-gaming`; `cle-viettel` host memory alerts use `90/85%`, and `cle-pve`
+node memory alerts use `95/90%`.
 
 `cle-pve` runs `pulse-agent.service` from `/usr/local/bin/pulse-agent`, pointing
 at `http://192.168.50.18:7655` with host metrics enabled, Docker/Kubernetes
