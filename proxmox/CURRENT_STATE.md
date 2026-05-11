@@ -601,6 +601,7 @@ Important Docker-backed Traefik routes:
 | `bazarr.chienlt.com` | `http://192.168.50.121:13016` |
 | `syncthing.chienlt.com` | `http://192.168.50.121:13017` |
 | `seerr.chienlt.com`, `jellyseerr.chienlt.com` | `http://192.168.50.121:13018` |
+| `watchstate.chienlt.com` | `http://192.168.50.121:13019` |
 
 Pulse local password auth is disabled on CT 102. CT 116 Traefik injects Pulse
 proxy-auth headers for `pulse.chienlt.com`, so the UI opens as proxy user
@@ -801,6 +802,28 @@ tailnet address, not the public VPS IP.
 
 ## VM 121 Runtime Integrations
 
+WatchState runs in the VM 121 Docker stack as container `watchstate`, using
+image `ghcr.io/arabcoders/watchstate:latest`. It is published only on LAN-bound
+host port `192.168.50.121:13019` and is exposed publicly through CT 116 Traefik
+as `watchstate.chienlt.com`. Its persisted runtime data lives under
+`/srv/selfhost/watchstate`; Plex/Jellyfin tokens and identities are configured
+through the WatchState UI and are not committed.
+
+The WatchState `main` identity has single-user backends `plex_main` and
+`jellyfin_main`, pointing to Plex LXC `192.168.50.242:32400` and Jellyfin LXC
+`192.168.50.243:8096`. Import and export are enabled on both backends for
+two-way sync. The initial full import completed with no failed items and
+populated the local WatchState database with 873 history rows.
+
+WatchState's persisted environment has `WS_CRON_IMPORT=true` and
+`WS_CRON_EXPORT=true`, so the scheduler runs import hourly at `0 */1 * * *` and
+export hourly at `30 */1 * * *`. A permanent WatchState backup of Jellyfin play
+state was written to `/srv/selfhost/watchstate/backup/main.jellyfin_main.json.zip`
+before the first Jellyfin export. A config backup was written to
+`/srv/selfhost/watchstate-config-backup-two-way-20260511-124843.tgz` before
+enabling two-way export. Manual dry-run and real baseline exports made
+comparison requests and found no play-state changes to apply.
+
 Reclaimerr runs in the VM 121 Docker stack. Its service connection settings live
 in the runtime SQLite database at
 `/srv/selfhost/reclaimerr/data/database/reclaimerr.db`.
@@ -828,8 +851,8 @@ Homepage live config:
 `Infrastructure` and `Internal Tools` groups. The added infrastructure/admin
 coverage includes Proxmox, Pulse, Kopia, router admin links, Prefect,
 Silverbullet, Playwright MCP, Chrome DevTools, Tailscale MCP, FlareSolverr,
-Docker Socket Proxy, Oracle Hermes, Bambuddy, TRMNL BYOS, Matter Server, HA
-MCP, and Bambuddy's Obico ML status endpoint.
+Docker Socket Proxy, Oracle Hermes, WatchState, Bambuddy, TRMNL BYOS, Matter
+Server, HA MCP, and Bambuddy's Obico ML status endpoint.
 
 The Homepage container mounts VM 121 `/mnt/user/media` read-only as
 `/storage/media`. `widgets.yaml` includes a `Media Storage` resources widget

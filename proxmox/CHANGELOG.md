@@ -2,6 +2,33 @@
 
 ## 2026-05-11
 
+- Added WatchState to VM 121 `selfhost-pve` in `/srv/selfhost/docker-compose.yml`
+  using `ghcr.io/arabcoders/watchstate:latest`, user `1000:1000`, persisted
+  config at `/srv/selfhost/watchstate`, and LAN-only publish
+  `192.168.50.121:13019:8080`. Added CT 116 Traefik file-provider route
+  `watchstate.chienlt.com -> http://192.168.50.121:13019` in
+  `/srv/traefik/rules/selfhost-docker.yml`. Runtime backups were written as
+  `/srv/selfhost/docker-compose.yml.bak-watchstate-20260511-083612` and
+  `/srv/traefik/rules/selfhost-docker.yml.bak-watchstate-20260511-013544`.
+- Configured WatchState `main` identity with `plex_main` and `jellyfin_main`
+  backends using credentials from ignored `proxmox/.env`. Import is enabled on
+  both backends. Verified Plex and Jellyfin backend version checks, then ran a
+  full import into WatchState's local database with no failed items and 873
+  resulting history rows.
+- Backed up Jellyfin's current play state through WatchState to
+  `/srv/selfhost/watchstate/backup/main.jellyfin_main.json.zip`, dry-ran a full
+  export to `jellyfin_main`, then ran the real full export. WatchState sent 3
+  Jellyfin comparison requests and found no play-state changes to apply.
+- Enabled two-way WatchState sync by setting export enabled on both `plex_main`
+  and `jellyfin_main`, enabling persisted `WS_CRON_IMPORT=true` and
+  `WS_CRON_EXPORT=true`, and restarting the container. Wrote a WatchState config
+  backup to `/srv/selfhost/watchstate-config-backup-two-way-20260511-124843.tgz`,
+  then ran two-way dry-run and real baseline exports; both found no play-state
+  changes to apply.
+- Added WatchState to the live Homepage `Media` group with public href,
+  internal site monitor, and Docker container status. Backed up the previous
+  Homepage services config to
+  `/srv/selfhost/homepage/config/services.yaml.bak-watchstate-20260511`.
 - Tuned CT 102 Pulse alerts after reviewing the previous 48 hours of alert
   history. Wrote a live backup to
   `/etc/pulse/alerts.json.backup-alert-tuning-20260511-152432`, migrated the
