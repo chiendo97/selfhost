@@ -1,6 +1,6 @@
 # cle-pve Current State
 
-Last verified: 2026-05-10.
+Last verified: 2026-05-11.
 
 ## Host
 
@@ -34,7 +34,7 @@ Host PCI passthrough is configured for the installed RTX 3060:
 | 100 | VM | `windows11` | stopped; last DHCP `192.168.50.227` | Imported Windows 11 VM from old Unraid disk image |
 | 101 | VM | `homelab-pve` | `192.168.50.130` | NixOS homelab host managed from dotfiles |
 | 121 | VM | `selfhost-pve` | `192.168.50.121`, tail `100.81.144.82` | NixOS Docker host for selfhost stack, Homepage, Jellyseerr |
-| 122 | VM | `bazzite-gaming` | DHCP `192.168.50.8` | Bazzite gaming VM with RTX 3060 passthrough |
+| 122 | VM | `bazzite-gaming` | `192.168.50.8`, tail `100.94.32.85` | Bazzite gaming VM with RTX 3060 passthrough |
 | 102 | LXC | `pulse` | `192.168.50.18` | Pulse monitoring |
 | 110 | LXC | `plex-pve` | `192.168.50.242` | Plex with Intel iGPU passthrough |
 | 111 | LXC | `jellyfin-pve` | `192.168.50.243`, tail `100.111.70.79` | Jellyfin with Intel iGPU passthrough |
@@ -91,7 +91,8 @@ VM 122 `bazzite-gaming` runs Bazzite with RTX 3060 passthrough:
 |---|---|
 | VMID | `122` |
 | Guest hostname | `bazzite-gaming` |
-| Guest IP | DHCP `192.168.50.8` at last check |
+| Guest IP | DHCP `192.168.50.8`, tail `100.94.32.85` |
+| Tailscale | `bazzite-gaming.tail148f9.ts.net`, `tag:trusted`, Tailscale SSH enabled |
 | Firmware / machine | OVMF, `pc-q35-10.1` |
 | CPU | 8 vCPU, `host` |
 | Memory | 8G dedicated, ballooning disabled |
@@ -106,7 +107,7 @@ VM 122 `bazzite-gaming` runs Bazzite with RTX 3060 passthrough:
 | Autostart | disabled |
 | Protection | enabled |
 | Tags | `bazzite,gaming` |
-| Sunshine | enabled via `ujust setup-sunshine enable`, web UI `https://192.168.50.8:47990` |
+| Sunshine | `sunshine-beta`, web UI `https://192.168.50.8:47990` |
 
 The installer ISO used for setup is the stable Bazzite NVIDIA Open live ISO for
 newer NVIDIA cards. It is stored in Proxmox ISO storage but is not currently
@@ -132,15 +133,35 @@ The temporary virtio VGA fallback was removed after another clean reboot and
 successful `nvidia-smi` check.
 
 Sunshine runs as the `cle` user through the Homebrew-generated
-`homebrew.sunshine.service` user unit. The unit is enabled under
+`homebrew.sunshine-beta.service` user unit. The unit is enabled under
 `graphical-session.target` rather than `default.target`, and Plasma autologin is
 enabled for `cle` so Sunshine starts after a real Wayland desktop session exists.
 An HDMI dummy plug is connected to the RTX 3060; Bazzite sees it as
-`HDMI-A-1`/`Ugreen Group Ltd. UGREEN`, and Sunshine detects H.264/HEVC NVENC on
-that display. VM 122 has no custom `video=` kernel argument for virtual display
-forcing. For Sunshine controller support, `cle` is a member of local group
-`input`, and `/etc/tmpfiles.d/sunshine-uhid.conf` keeps `/dev/uhid` owned by
-`root:input` with mode `0660`.
+`HDMI-A-1`/`Ugreen Group Ltd. UGREEN`. Sunshine is pinned to KWin screencast
+capture with H.264 NVENC only:
+
+```text
+capture = kwin
+encoder = nvenc
+hevc_mode = 1
+av1_mode = 1
+origin_web_ui_allowed = lan
+csrf_allowed_origins = https://192.168.50.8:47990,https://100.94.32.85:47990,https://bazzite-gaming.tail148f9.ts.net:47990,https://bazzite-gaming:47990
+```
+
+This avoids the NVIDIA/Homebrew HEVC capture failure observed as
+`Couldn't import RGB Image: 00003009`. VM 122 has no custom `video=` kernel
+argument for virtual display forcing. For Sunshine controller support, `cle` is
+a member of local group `input`, and `/etc/tmpfiles.d/sunshine-uhid.conf` keeps
+`/dev/uhid` owned by `root:input` with mode `0660`.
+
+Tailscale is enabled through Bazzite's `ujust tailscale enable` recipe. The VM
+joined the tailnet with a short-lived one-off `tag:trusted` auth key minted from
+the Tailscale API, because the stored auth keys in `proxmox/.env` were stale.
+Tailscale reports device ID `nUqhdKPAwk11CNTRL`, DNS name
+`bazzite-gaming.tail148f9.ts.net`, tailnet IP `100.94.32.85`, Tailscale SSH
+enabled, local operator `cle`, and key expiry disabled. OpenTofu does not yet
+manage VM 122 or its Tailscale device lifecycle.
 
 VM Secure Boot is disabled (`efidisk0` has `pre-enrolled-keys=0`) because
 Bazzite failed to boot with `bad shim signature` before Universal Blue's Secure

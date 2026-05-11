@@ -108,19 +108,41 @@ Sunshine checks:
 
 ```bash
 ssh -i ~/.ssh/id_ed25519_selfhost cle@192.168.50.8 'ujust setup-sunshine status'
-ssh -i ~/.ssh/id_ed25519_selfhost cle@192.168.50.8 'systemctl --user status homebrew.sunshine.service --no-pager'
-ssh -i ~/.ssh/id_ed25519_selfhost cle@192.168.50.8 'journalctl --user -u homebrew.sunshine.service -b --no-pager | grep -E "Found monitor|Found H\\.264|Found HEVC|Permission denied|Fatal"'
+ssh -i ~/.ssh/id_ed25519_selfhost cle@192.168.50.8 'systemctl --user status homebrew.sunshine-beta.service --no-pager'
+ssh -i ~/.ssh/id_ed25519_selfhost cle@192.168.50.8 'sed -n "1,80p" ~/.config/sunshine/sunshine.conf'
+ssh -i ~/.ssh/id_ed25519_selfhost cle@192.168.50.8 'journalctl --user -u homebrew.sunshine-beta.service -b --no-pager | grep -E "KWin ScreenCast|Found H\\.264|Permission denied|Fatal|CSRF"'
 curl -k -L --max-time 8 -sS -o /dev/null -w '%{http_code} %{url_effective}\n' https://192.168.50.8:47990
 ```
 
 Expected Sunshine state:
 
 ```text
-`ujust setup-sunshine status` returns `enable`.
-`homebrew.sunshine.service` is active in the `cle` graphical session.
+`ujust setup-sunshine status` returns `enable-beta`.
+`homebrew.sunshine-beta.service` is active in the `cle` graphical session.
 The RTX 3060 has an HDMI dummy plug connected as `HDMI-A-1`.
-Sunshine logs show H.264 and HEVC encoders through NVENC.
-The web UI redirects to `https://192.168.50.8:47990/welcome` for first setup.
+Sunshine config uses `capture = kwin`, `encoder = nvenc`, `hevc_mode = 1`,
+and `av1_mode = 1`.
+`csrf_allowed_origins` allows the LAN IP, tailnet IP, tailnet FQDN, and short
+MagicDNS hostname on port `47990`.
+Sunshine logs show KWin ScreenCast and H.264 NVENC.
+The web UI is available at `https://192.168.50.8:47990`.
+```
+
+Tailscale checks:
+
+```bash
+ssh -i ~/.ssh/id_ed25519_selfhost cle@192.168.50.8 'systemctl status tailscaled --no-pager'
+ssh -i ~/.ssh/id_ed25519_selfhost cle@192.168.50.8 'tailscale status --self; tailscale ip -4'
+tailscale ping --timeout=10s --c 3 bazzite-gaming
+tailscale ssh cle@bazzite-gaming hostname
+```
+
+Expected Tailscale state:
+
+```text
+`tailscaled.service` is enabled and active.
+`bazzite-gaming.tail148f9.ts.net` has tailnet IP `100.94.32.85`.
+The device is tagged `tag:trusted`; Tailscale SSH is enabled.
 ```
 
 ## Traefik LXC

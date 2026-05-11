@@ -1,5 +1,22 @@
 # cle-pve Infrastructure Changelog
 
+## 2026-05-11
+
+- Enabled Tailscale on VM 122 `bazzite-gaming` through Bazzite's `ujust
+  tailscale enable` recipe. The existing stored auth keys in `proxmox/.env`
+  were stale, so a short-lived one-off `tag:trusted` auth key was minted with
+  the Tailscale API and used without persisting it. The VM joined as
+  `bazzite-gaming.tail148f9.ts.net` with tailnet IP `100.94.32.85`, Tailscale
+  SSH enabled, local operator `cle`, and key expiry disabled by the tagged-node
+  login.
+- Switched VM 122 Sunshine from the stable Homebrew service to
+  `sunshine-beta`, removed the broken `Low Res Desktop` app entry, disabled
+  KDE auto-lock, and configured `capture = kwin`, `encoder = nvenc`,
+  `hevc_mode = 1`, `av1_mode = 1`, `origin_web_ui_allowed = lan`, and
+  `csrf_allowed_origins` for the LAN IP, tailnet IP, tailnet FQDN, and short
+  MagicDNS hostname. Verified Moonlight pairing and streaming through the
+  `Desktop` app with H.264 NVENC.
+
 ## 2026-05-10
 
 - Added Tailscale to CT 112 `nas-pve` as tagged host `nas-pve`
