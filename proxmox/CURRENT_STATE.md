@@ -630,8 +630,13 @@ with a 5-minute window, 5 state changes to detect flapping, and a 15-minute
 flapping cooldown. Docker image update alerts fire only after an available
 update has persisted for 72 hours. Resource overrides suppress intentional
 powered-off/connectivity alerts for VM 100 `windows11` and VM 122
-`bazzite-gaming`; `cle-viettel` host memory alerts use `90/85%`, and `cle-pve`
-node memory alerts use `95/90%`.
+`bazzite-gaming`; `cle-viettel` host memory alerts use `90/85%` under raw host
+ID override key `cf46a880-112a-44d7-819b-520e81355e49` because Pulse
+`v6.0.0-rc.4` host-agent threshold resolution does not apply the prefixed
+`agent:` alert resource key. `cle-pve` node memory alerts use `95/90%`. CT 110
+`plex-pve` CPU alerts use `95/90%` under the normalized Pulse override key
+`guest:pve-192.168.50.13:110`, so normal Plex transcode bursts do not page at
+the default guest CPU threshold.
 
 `cle-pve` runs `pulse-agent.service` from `/usr/local/bin/pulse-agent`, pointing
 at `http://192.168.50.18:7655` with host metrics enabled, Docker/Kubernetes
@@ -815,11 +820,14 @@ The WatchState `main` identity has single-user backends `plex_main` and
 two-way sync. The initial full import completed with no failed items and
 populated the local WatchState database with 873 history rows.
 
-WatchState's persisted environment has `WS_CRON_IMPORT=true` and
-`WS_CRON_EXPORT=true`, so the scheduler runs import hourly at `0 */1 * * *` and
-export hourly at `30 */1 * * *`. A permanent WatchState backup of Jellyfin play
-state was written to `/srv/selfhost/watchstate/backup/main.jellyfin_main.json.zip`
-before the first Jellyfin export. A config backup was written to
+WatchState's persisted environment has `WS_TZ=Asia/Ho_Chi_Minh`,
+`WS_CRON_IMPORT=true`, and `WS_CRON_EXPORT=true`. The VM 121 Docker Compose
+service also exports `TZ=Asia/Ho_Chi_Minh` and `WS_TZ=Asia/Ho_Chi_Minh`, so
+the scheduler displays local `+07` next-run times. The scheduler runs import
+hourly at `0 */1 * * *` and export hourly at `30 */1 * * *`. A permanent
+WatchState backup of Jellyfin play state was written to
+`/srv/selfhost/watchstate/backup/main.jellyfin_main.json.zip` before the first
+Jellyfin export. A config backup was written to
 `/srv/selfhost/watchstate-config-backup-two-way-20260511-124843.tgz` before
 enabling two-way export. Manual dry-run and real baseline exports made
 comparison requests and found no play-state changes to apply.

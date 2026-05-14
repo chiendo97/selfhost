@@ -30,7 +30,7 @@ mode: snapshot
 compress: zstd
 zstd: 1
 all: 1
-retention: keep-daily=7, keep-weekly=4, keep-monthly=3
+retention: keep-daily=3, keep-weekly=4, keep-monthly=3
 ```
 
 Management surfaces:

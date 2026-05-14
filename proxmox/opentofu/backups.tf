@@ -10,7 +10,7 @@ resource "proxmox_backup_job" "nightly_guests" {
   node           = local.node_name
   notes_template = "{{guestname}}"
   prune_backups = {
-    keep-daily   = "7"
+    keep-daily   = "3"
     keep-monthly = "3"
     keep-weekly  = "4"
   }

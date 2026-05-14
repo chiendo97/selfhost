@@ -1,5 +1,30 @@
 # cle-pve Infrastructure Changelog
 
+## 2026-05-14
+
+- Lowered the OpenTofu-managed Proxmox `nightly-guests` backup job retention on
+  `tank-backup` from `keep-daily=7,keep-weekly=4,keep-monthly=3` to
+  `keep-daily=3,keep-weekly=4,keep-monthly=3` after Pulse alerted that
+  `tank-backup` crossed the default 85% storage threshold. The pressure came
+  from VM 121 `selfhost-pve` backups growing to about 258 GiB each after guest
+  discard stopped producing sparse backup data. Updated both the backup job and
+  `tank-backup` storage prune policy, then ran `pvesm prune-backups
+  tank-backup`; usage dropped from 89.71% to 58.16%. The OpenTofu provider token
+  could plan the backup job change but could not apply it because Proxmox
+  returned `Sys.Modify` permission denied, so the live change was applied as
+  root with `pvesh`.
+
+## 2026-05-13
+
+- Fixed the CT 102 Pulse `cle-viettel` host-agent memory override by moving it
+  from the alert resource key `agent:cf46a880-112a-44d7-819b-520e81355e49` to
+  the raw host ID key `cf46a880-112a-44d7-819b-520e81355e49`, which Pulse
+  `v6.0.0-rc.4` actually uses when resolving host-agent thresholds. Wrote a
+  live backup to
+  `/etc/pulse/alerts.json.backup-cle-viettel-agent-key-20260513-191230`,
+  restarted `pulse.service`, and verified the public API serves the `90/85%`
+  override under the raw key with no prefixed duplicate.
+
 ## 2026-05-11
 
 - Added WatchState to VM 121 `selfhost-pve` in `/srv/selfhost/docker-compose.yml`
@@ -29,6 +54,10 @@
   internal site monitor, and Docker container status. Backed up the previous
   Homepage services config to
   `/srv/selfhost/homepage/config/services.yaml.bak-watchstate-20260511`.
+- Set WatchState's app timezone to `Asia/Ho_Chi_Minh` by persisting `WS_TZ` and
+  adding it to the VM 121 Docker Compose service environment. Backups were
+  written to `/srv/selfhost/watchstate/config/.env.bak-tz-20260511-200239` and
+  `/srv/selfhost/docker-compose.yml.bak-watchstate-tz-20260511-2003`.
 - Tuned CT 102 Pulse alerts after reviewing the previous 48 hours of alert
   history. Wrote a live backup to
   `/etc/pulse/alerts.json.backup-alert-tuning-20260511-152432`, migrated the
@@ -43,6 +72,11 @@
   threshold. Wrote a live backup to
   `/etc/pulse/alerts.json.backup-pve-memory-95-20260511-152703` and verified
   Pulse reported no active alerts afterward.
+- Added a CT 102 Pulse CPU override for CT 110 `plex-pve` at `95/90%` after
+  the post-tuning alert history showed repeated short Plex CPU bursts at the
+  default `80/75%` threshold. Wrote a live backup to
+  `/etc/pulse/alerts.json.backup-plex-cpu-tuning-20260511-182953`; Pulse
+  normalized the override key to `guest:pve-192.168.50.13:110`.
 - Enabled Tailscale on VM 122 `bazzite-gaming` through Bazzite's `ujust
   tailscale enable` recipe. The existing stored auth keys in `proxmox/.env`
   were stale, so a short-lived one-off `tag:trusted` auth key was minted with
