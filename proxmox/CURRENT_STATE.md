@@ -633,8 +633,9 @@ powered-off/connectivity alerts for VM 100 `windows11` and VM 122
 `bazzite-gaming`; `cle-viettel` host memory alerts use `90/85%` under raw host
 ID override key `cf46a880-112a-44d7-819b-520e81355e49` because Pulse
 `v6.0.0-rc.4` host-agent threshold resolution does not apply the prefixed
-`agent:` alert resource key. `cle-pve` node memory alerts use `95/90%`. CT 110
-`plex-pve` CPU alerts use `95/90%` under the normalized Pulse override key
+`agent:` alert resource key. `cle-pve` node memory alerts use `98/90%` and a
+15-minute per-metric duration via `metricTimeThresholds.node.memory = 900`.
+CT 110 `plex-pve` CPU alerts use `95/90%` under the normalized Pulse override key
 `guest:pve-192.168.50.13:110`, so normal Plex transcode bursts do not page at
 the default guest CPU threshold.
 

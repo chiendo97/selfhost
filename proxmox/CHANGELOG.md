@@ -2,6 +2,18 @@
 
 ## 2026-05-14
 
+- Raised the CT 102 Pulse `cle-pve` node memory trigger from `95%` to `98%`,
+  leaving the clear threshold at `90%` and the 15-minute per-metric duration in
+  place. Wrote the live backup to
+  `/etc/pulse/alerts.json.backup-cle-pve-memory-98-20260514-182705`,
+  restarted `pulse.service`, and Pulse auto-resolved the active memory alert
+  because its value was below the new trigger.
+- Increased CT 102 Pulse's node memory alert duration for `cle-pve` by adding
+  `metricTimeThresholds.node.memory = 900` to `/etc/pulse/alerts.json`, so the
+  node must remain above the `95%` memory trigger for 15 minutes before a new
+  warning notification fires. Wrote the live backup to
+  `/etc/pulse/alerts.json.backup-cle-pve-memory-duration-20260514-170428` and
+  restarted `pulse.service`.
 - Lowered the OpenTofu-managed Proxmox `nightly-guests` backup job retention on
   `tank-backup` from `keep-daily=7,keep-weekly=4,keep-monthly=3` to
   `keep-daily=3,keep-weekly=4,keep-monthly=3` after Pulse alerted that
