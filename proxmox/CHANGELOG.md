@@ -1,5 +1,65 @@
 # cle-pve Infrastructure Changelog
 
+## 2026-05-26
+
+- Raised CT 102 Pulse host-agent SMART disk temperature alerting from `65/60 C`
+  to `70/65 C` in `/etc/pulse/alerts.json`. A live backup was written to
+  `/etc/pulse/alerts.json.backup-disktemp-70-20260526-095349`, Pulse was
+  restarted, and existing disk-temperature alerts auto-resolved after the
+  configuration reload.
+
+## 2026-05-24
+
+- Removed the explicit Cloudflare record for `pulse.chienlt.com`, restoring the
+  wildcard DNS path to CT 116 `traefik-pve` at `100.112.33.84`.
+- Restarted AdGuardHome on `oracle` and `cle-viettel-vpn` to clear the stale
+  tailnet DNS cache that still returned VM 121's tailnet IP for
+  `pulse.chienlt.com`.
+- Restored the CT 116 `/srv/traefik/rules/proxmox.yml` Pulse router, service,
+  and proxy-auth middleware from the pre-removal backup, routing
+  `pulse.chienlt.com` to CT 102 Pulse at `192.168.50.18:7655`.
+- Stopped VM 121 Traefik again; it remains available only behind the explicit
+  `old-traefik` Docker Compose profile for rollback.
+- Deleted the `cle-pve` host `pulse-agent-loopback-proxy.service` socat proxy
+  unit and backup unit copies, then pointed `pulse-agent.service` directly at
+  `http://192.168.50.18:7655`.
+- Rolled CT 102 back to
+  `rpool/data/subvol-102-disk-0@pre-pulse-stable-reinstall-20260524-123619`
+  after first taking a safety snapshot. The restored Pulse `v6.0.0-rc.5`
+  runtime SQLite databases caused HTTP requests to hang, so they were moved
+  aside to `/root/pulse-sqlite-pre-nuke-20260524-131718` and Pulse rebuilt
+  fresh databases from the restored config.
+- Reinstalled CT 102 from the official Pulse `v5.1.31` Linux amd64 release on
+  the `stable` update channel, seeded only restored config files, disabled
+  unattended auto-updates, and left the fresh runtime SQLite databases in place.
+  A pre-replacement backup was written to
+  `/root/pulse-reinstall-backups/pulse-pre-v5-reinstall-20260524-183227.tgz`
+  and a safety ZFS snapshot to
+  `rpool/data/subvol-102-disk-0@pre-pulse-v5-reinstall-20260524-183227`.
+- Reissued the fresh Pulse v5.1.31 agent token DB with one new token per agent,
+  redeployed the token files to `cle-pve`, N100, VM 121 `selfhost-pve`, Docker
+  LXCs 110/111/113/114, and remote hosts `oracle`, `cle-cloudfly`, and
+  `cle-viettel-vpn`, then restarted each agent.
+- Re-applied the pre-reinstall Pulse alert tuning to the v5.1.31 config:
+  `65/60 C` host disk temperature, 15-minute notification cooldown, flapping
+  protection with a 5-minute window and 15-minute cooldown, 72-hour Docker image
+  update delay, `cle-pve` node memory `98/90%` with
+  `metricTimeThresholds.node.memory = 900`, `cle-viettel` host memory `90/85%`,
+  powered-off/connectivity suppression for VM 100 `windows11` and VM 122
+  `bazzite-gaming`, and CT 110 `plex-pve` CPU `95/90%`. Pulse v5 required
+  stable guest override keys such as `pve-192.168.50.13-100`; backups were
+  written to `/etc/pulse/alerts.json.backup-reapply-v5-thresholds-20260524-pre-keyfix`
+  and `/etc/pulse/alerts.json.backup-v5-guest-keyfix-20260524`.
+
+## 2026-05-20
+
+- Increased CT 102 `pulse` from `1024M` RAM / `512M` swap to `1536M` RAM /
+  `768M` swap through OpenTofu after Pulse alerted that the LXC had been above
+  the `85%` memory threshold for over an hour. The provider wrote the live
+  config, then returned the expected `VM.PowerMgmt` 403 when it attempted a
+  container reboot; no restart was needed, and a follow-up plan verified no
+  drift.
+
 ## 2026-05-14
 
 - Raised the CT 102 Pulse `cle-pve` node memory trigger from `95%` to `98%`,

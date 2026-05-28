@@ -54,7 +54,7 @@ Current Proxmox LXC limits after tuning:
 
 | ID | Name | Cores | Memory | Swap | Rootfs |
 |---:|---|---:|---:|---:|---:|
-| 102 | `pulse` | 1 | 1024M | 512M | 4G |
+| 102 | `pulse` | 1 | 1536M | 768M | 4G |
 | 110 | `plex-pve` | 4 | 4096M | 1024M | 24G |
 | 111 | `jellyfin-pve` | 2 | 2048M | 512M | 24G |
 | 112 | `nas-pve` | 1 | 512M | 256M | 16G |
@@ -609,9 +609,20 @@ proxy-auth headers for `pulse.chienlt.com`, so the UI opens as proxy user
 authenticated API calls are not proxy-authenticated without the Traefik headers.
 Pulse API token auth remains enabled for agents.
 
-CT 102 runs Pulse server `v6.0.0-rc.4` on the `rc` update channel, with
+CT 102 runs Pulse server `v5.1.31` on the `stable` update channel, with
 unattended auto-updates disabled. `/bin/update` is the Pulse
-installer-managed helper for manual server updates.
+installer-managed helper for manual server updates. On 2026-05-24, CT 102 was
+first rolled back to ZFS snapshot
+`rpool/data/subvol-102-disk-0@pre-pulse-stable-reinstall-20260524-123619`;
+the restored Pulse `v6.0.0-rc.5` SQLite runtime databases caused HTTP requests
+to hang, so they were moved aside to
+`/root/pulse-sqlite-pre-nuke-20260524-131718`. CT 102 was then reinstalled from
+the official Pulse `v5.1.31` Linux amd64 release using fresh runtime databases
+and a fresh agent token DB seeded from the restored config files. The pre-v5
+replacement backup is
+`/root/pulse-reinstall-backups/pulse-pre-v5-reinstall-20260524-183227.tgz`, and
+the safety ZFS snapshot is
+`rpool/data/subvol-102-disk-0@pre-pulse-v5-reinstall-20260524-183227`.
 
 CT 102 also runs Tailscale `1.96.4` as `pulse-pve.tail148f9.ts.net`, tagged
 `tag:server`, with tailnet address `100.86.86.121`. The LXC has
@@ -621,23 +632,23 @@ tags and key-expiry settings for `pulse_pve` are imported into OpenTofu.
 Pulse alert notifications are active. CT 102 stores the enabled `Telegram
 Alerts` webhook encrypted at `/etc/pulse/webhooks.enc`; the Telegram bot token
 and chat ID are sourced from local `.env.local` during setup and are not stored
-in the repo. Pulse v6 host-agent SMART disk temperature alerts are configured
-through `agentDefaults.diskTemperature` and trigger at `65 C`, clearing at
-`60 C`.
+in the repo. Pulse host-agent SMART disk temperature alerts trigger at `70 C`,
+clearing at `65 C`.
 
 Pulse alert delivery has a 15-minute cooldown and flapping protection enabled
 with a 5-minute window, 5 state changes to detect flapping, and a 15-minute
 flapping cooldown. Docker image update alerts fire only after an available
 update has persisted for 72 hours. Resource overrides suppress intentional
 powered-off/connectivity alerts for VM 100 `windows11` and VM 122
-`bazzite-gaming`; `cle-viettel` host memory alerts use `90/85%` under raw host
-ID override key `cf46a880-112a-44d7-819b-520e81355e49` because Pulse
-`v6.0.0-rc.4` host-agent threshold resolution does not apply the prefixed
-`agent:` alert resource key. `cle-pve` node memory alerts use `98/90%` and a
-15-minute per-metric duration via `metricTimeThresholds.node.memory = 900`.
-CT 110 `plex-pve` CPU alerts use `95/90%` under the normalized Pulse override key
-`guest:pve-192.168.50.13:110`, so normal Plex transcode bursts do not page at
-the default guest CPU threshold.
+`bazzite-gaming` under Pulse v5 stable guest keys
+`pve-192.168.50.13-100` and `pve-192.168.50.13-122`; `cle-viettel` host memory
+alerts use `90/85%` under raw host ID override key
+`cf46a880-112a-44d7-819b-520e81355e49`. `cle-pve` node memory alerts use
+`98/90%` and a 15-minute per-metric duration via
+`metricTimeThresholds.node.memory = 900`. CT 110 `plex-pve` CPU alerts use
+`95/90%` under the Pulse v5 stable guest override key
+`pve-192.168.50.13-110`, so normal Plex transcode bursts do not page at the
+default guest CPU threshold.
 
 `cle-pve` runs `pulse-agent.service` from `/usr/local/bin/pulse-agent`, pointing
 at `http://192.168.50.18:7655` with host metrics enabled, Docker/Kubernetes
@@ -705,12 +716,12 @@ tracked here. Kuma includes TCP port monitors for AdGuard DNS on
 configured but inactive because `https://frigate.chienlt.com/api/health`
 currently returns HTTP 404.
 
-Each Docker Pulse agent has a separate API token with `docker:report`,
-`host-agent:config:read`, and `host-agent:report` scopes. The compose
-healthcheck is disabled because the public Pulse image carries the server
-healthcheck, while these containers run only the agent binary.
-Remote host-only agents use separate tokens with only `host-agent:report` and
-`host-agent:config:read`; `cle-viettel` additionally has `docker:report`.
+Each Pulse agent has its own API token in CT 102's fresh v5.1.31 token DB,
+reissued on 2026-05-24 after the stable reinstall. Pulse v5.1.31 created these
+agent tokens with `*` scope; token values are stored only in the live token
+files and are not tracked in this repo. The compose healthcheck is disabled
+because the public Pulse image carries the server healthcheck, while these
+containers run only the agent binary.
 
 ```text
 LXC tokens:          /opt/pulse-agent/token
