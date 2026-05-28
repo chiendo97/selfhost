@@ -15,6 +15,99 @@ Claude/Codex state, or generated service data.
 - `proxmox/README.md`: Proxmox documentation map.
 - `proxmox/CURRENT_STATE.md`: live infrastructure source of truth.
 
+## Topology Snapshot
+
+This repo covers two related selfhost layers:
+
+- `cle-pve` Proxmox host at `192.168.50.13`, with infrastructure state in
+  `proxmox/`.
+- The current N100/root stack in this repo root, managed as rootless Podman
+  Quadlets under `systemctl --user`.
+
+High-level flow:
+
+```text
+Cloudflare / Tailscale DNS
+  -> CT116 traefik-pve 192.168.50.247 / 100.112.33.84
+       -> Proxmox/LXC services directly
+       -> VM121 selfhost-pve Docker apps via 192.168.50.121:13000-13019
+
+cle-pve 192.168.50.13
+  VMs:
+    100 windows11 stopped
+    101 homelab-pve
+    121 selfhost-pve, Docker app host, 192.168.50.121 / 100.81.144.82
+    122 bazzite-gaming, RTX 3060 passthrough
+
+  LXCs:
+    102 pulse monitoring
+    110 plex-pve
+    111 jellyfin-pve
+    112 nas-pve NFS/Samba exports
+    113 frigate-pve
+    114 immich-pve
+    115 backup-pve Kopia
+    116 traefik-pve ingress
+
+N100/root Quadlets:
+  homeassistant, mqtt, mqtt-explorer, zigbee2mqtt, matter-server,
+  ha-mcp, bambuddy, obico-ml-api, trmnl-byos + postgres
+```
+
+Important edges:
+
+- `nas-pve` exports `/tank/media` and `/fast/zk`; VM 121 mounts both.
+- Intel iGPU is passed to Plex, Jellyfin, Frigate, and Immich LXCs.
+- CT 116 Traefik is the main internal/tailnet ingress for `*.chienlt.com`;
+  VM 121's old Traefik is stopped and kept only for rollback.
+- VM 121 runs the mutable Docker app stack from `/srv/selfhost`.
+- Backups are split between Proxmox `nightly-guests` for guest root disks and
+  config, and Kopia on CT 115 for Immich photos/dumps plus shared `zk`.
+- Runtime app data, service env files, Traefik `acme.json`, databases, and
+  generated state stay out of git.
+
+VM 121 `selfhost-pve` Docker services run from mutable state in `/srv/selfhost`;
+verify live state with `ssh selfhost-pve 'cd /srv/selfhost && docker compose ps'`
+before changing routes or docs.
+
+Current routed VM 121 services:
+
+| Service | LAN-bound backend |
+|---|---|
+| `homepage` | `192.168.50.121:13000` |
+| `dozzle` | `192.168.50.121:13001` |
+| `sonarr` | `192.168.50.121:13002` |
+| `radarr` | `192.168.50.121:13003` |
+| `prowlarr` | `192.168.50.121:13004` |
+| `sabnzbd` | `192.168.50.121:13005` |
+| `qbittorrent` | `192.168.50.121:13006` |
+| `tautulli` | `192.168.50.121:13007` |
+| `reclaimerr` | `192.168.50.121:13008` |
+| `dockge` | `192.168.50.121:13009` |
+| `filebrowser` | `192.168.50.121:13010` |
+| `silverbullet` | `192.168.50.121:13011` |
+| `speedtest-tracker` | `192.168.50.121:13012` |
+| `dockhand` | `192.168.50.121:13013` |
+| `hledger-webapp` | `192.168.50.121:13014` |
+| `openspeedtest` | `192.168.50.121:13015` |
+| `bazarr` | `192.168.50.121:13016` |
+| `syncthing` | `192.168.50.121:13017` |
+| `seerr` | `192.168.50.121:13018` |
+| `watchstate` | `192.168.50.121:13019` |
+
+Other running VM 121 Compose services:
+
+```text
+decluttarr
+dockerproxy
+flaresolverr
+playwright-mcp
+pulse-agent
+recyclarr
+tailscale-mcp
+watchtower
+```
+
 ## Worktree Safety
 
 - The worktree may already contain user edits. Check `git status --short` and

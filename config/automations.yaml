@@ -57,29 +57,61 @@
   max_exceeded: silent
 - id: '1778343944881'
   alias: Roborock dock clean water box alert
-  description: When the Roborock dock clean water box problem sensor turns on, send
-    a Telegram notification and create a Todoist task to fill/check the clean water
-    tank.
+  description: When the Roborock dock reports a clean water box problem or a non-ok
+    dock error state, send a Telegram notification and create a Todoist task to check
+    the dock tanks/components.
   triggers:
   - platform: state
     entity_id: binary_sensor.roborock_qrevo_edge_series_dock_clean_water_box
     from: 'off'
     to: 'on'
+    id: clean_water_box_problem
+  - platform: state
+    entity_id: sensor.roborock_qrevo_edge_series_dock_dock_error
+    to: duct_blockage
+    id: dock_error
+  - platform: state
+    entity_id: sensor.roborock_qrevo_edge_series_dock_dock_error
+    to: water_empty
+    id: dock_error
+  - platform: state
+    entity_id: sensor.roborock_qrevo_edge_series_dock_dock_error
+    to: waste_water_tank_full
+    id: dock_error
+  - platform: state
+    entity_id: sensor.roborock_qrevo_edge_series_dock_dock_error
+    to: maintenance_brush_jammed
+    id: dock_error
+  - platform: state
+    entity_id: sensor.roborock_qrevo_edge_series_dock_dock_error
+    to: dirty_tank_latch_open
+    id: dock_error
+  - platform: state
+    entity_id: sensor.roborock_qrevo_edge_series_dock_dock_error
+    to: no_dustbin
+    id: dock_error
+  - platform: state
+    entity_id: sensor.roborock_qrevo_edge_series_dock_dock_error
+    to: cleaning_tank_full_or_blocked
+    id: dock_error
   conditions: []
   actions:
-  - action: notify.send_message
-    target:
-      entity_id: notify.cle_s_bot_chien_le
+  - action: telegram_bot.send_message
     data:
-      title: Roborock needs water
-      message: Roborock dock clean water box problem is active. Please fill/check
-        the clean water tank.
-  - target:
+      entity_id: notify.cle_s_bot_chien_le
+      title: Roborock dock needs attention
+      message: 'Roborock dock problem: {{ states(''sensor.roborock_qrevo_edge_series_dock_dock_error'')
+        }}. Please check the clean water tank, dirty water tank, dustbin, duct, latch,
+        and maintenance brush as needed.'
+      parse_mode: plain_text
+  - action: todo.add_item
+    target:
       entity_id: todo.inbox
     data:
-      item: Fill/check Roborock clean water tank
-      description: Created by Home Assistant because binary_sensor.roborock_qrevo_edge_series_dock_clean_water_box
-        changed to on.
+      item: 'Check Roborock dock: {{ states(''sensor.roborock_qrevo_edge_series_dock_dock_error'')
+        }}'
+      description: Created by Home Assistant because the Roborock dock clean water
+        box problem sensor turned on or the dock_error sensor changed to a non-ok
+        state.
       due_date: '{{ now().date().isoformat() }}'
-    action: todo.add_item
   mode: single
