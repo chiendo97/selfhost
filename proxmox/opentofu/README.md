@@ -10,6 +10,8 @@ Current scope:
 - all pre-existing guests are imported into local OpenTofu state;
 - all current LXCs and both NixOS VMs are tightened and plan no changes without
   blanket `ignore_changes = all`;
+- VM 122 `bazzite-gaming` is imported as a dedicated VM resource, with a
+  targeted VM 122 plan showing no changes after the 2026-06-06 import;
 - the live Tailscale tailnet policy is imported and managed from
   `tailscale-policy.hujson`;
 - Tailscale DNS config, stable infra device tags, and stable infra key-expiry
@@ -31,9 +33,6 @@ OpenTofu does not yet own:
   properties;
 - Tailscale device lifecycle, auth keys, or device authorization;
 - NixOS, Home Manager, Docker, Traefik, Homepage, or app config.
-- VM 122 `bazzite-gaming`, which was created manually on 2026-05-10 with
-  Bazzite and RTX 3060 passthrough. It should be adopted after the final VM
-  settings are settled.
 
 Those stay in the current manual/docs flow until the later Ansible layer is
 added.
@@ -92,6 +91,11 @@ The VM 121-scoped manage role also includes `VM.Config.Memory` so OpenTofu can
 apply memory-limit changes. They intentionally do not include `VM.PowerMgmt`,
 so this OpenTofu token cannot shut down or restart the NixOS VMs.
 
+VM 122 `bazzite-gaming` is imported into state with its Bazzite, OVMF, TPM,
+`vga: none`, and RTX 3060 passthrough settings. Routine OpenTofu runs currently
+read it through `PVEAuditor`; no VM 122-scoped management role has been granted
+yet.
+
 `OpenTofuStorageManage` adds `Datastore.Allocate,Datastore.Audit` on each
 adopted storage path. The provider requires `Datastore.Allocate` even to read
 those storage resources.
@@ -131,6 +135,8 @@ Current local state backup:
 ```text
 cle-pve:/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-200900
 cle-pve:/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260508-232851
+cle-pve:/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260606-102551
+cle-pve:/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260606-105216
 ```
 
 The backup directory is root-owned and mode `0700`. A matching `.sha256` file
@@ -219,6 +225,11 @@ no changes without blanket `ignore_changes = all`:
 121 selfhost-pve
 ```
 
+VM 122 `bazzite-gaming` is also a dedicated VM resource because of its Bazzite,
+OVMF, TPM, `vga: none`, and RTX 3060 passthrough settings. The 2026-06-06 import
+used a targeted import-only plan and a targeted follow-up plan verified no VM
+122 drift.
+
 OpenTofu owns the normal provider-visible LXC inventory fields, including CPU,
 memory, rootfs size, mounts, device passthrough, network, startup order, and
 on-boot behavior.
@@ -243,6 +254,8 @@ Targeted VM ignores remain:
   leading space.
 - VM 121 `keyboard_layout` and `agent[0].type`, because normalizing those
   provider defaults previously caused the provider to request VM shutdown.
+- VM 122 `efi_disk[0].file_format` and `keyboard_layout`, because those are
+  provider/import metadata or defaults rather than intended live changes.
 
 ## Tailscale Ownership
 

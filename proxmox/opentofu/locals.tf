@@ -48,14 +48,27 @@ locals {
     mac_address         = "BC:24:11:50:01:00"
   }
 
+  bazzite_gaming_vm = {
+    vm_id               = 122
+    name                = "bazzite-gaming"
+    description         = "Bazzite gaming VM shell for future RTX 3060 passthrough"
+    cores               = 8
+    memory              = 8192
+    boot_disk_datastore = "fast-vm"
+    boot_disk_size      = 128
+    mac_address         = "BC:24:11:50:01:22"
+    startup_order       = 85
+    startup_up_delay    = 30
+  }
+
   lxc_guests = {
     pulse = {
       vm_id              = 102
       hostname           = "pulse"
       description        = "Pulse monitoring LXC from community-scripts"
       tags               = ["community-script", "monitoring", "proxmox"]
-      cores              = 1
-      memory             = 1536
+      cores              = 2
+      memory             = 2048
       swap               = 768
       rootfs_datastore   = "local-zfs"
       rootfs_size        = 4

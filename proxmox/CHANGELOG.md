@@ -1,5 +1,15 @@
 # cle-pve Infrastructure Changelog
 
+## 2026-06-06
+
+- Imported VM 122 `bazzite-gaming` into the local OpenTofu state as a dedicated
+  VM resource matching its existing Bazzite, OVMF, TPM, `vga: none`, and RTX
+  3060 passthrough configuration. No VM memory change was made. The VM 122
+  targeted follow-up plan verified no drift.
+- Updated CT 102 `pulse` OpenTofu desired state to match live Proxmox at
+  `2` cores, `2048M` RAM, and `768M` swap. A full OpenTofu plan then verified
+  no changes.
+
 ## 2026-05-26
 
 - Raised CT 102 Pulse host-agent SMART disk temperature alerting from `65/60 C`

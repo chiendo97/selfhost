@@ -9,6 +9,11 @@ import {
 }
 
 import {
+  to = proxmox_virtual_environment_vm.bazzite_gaming
+  id = "cle-pve/122"
+}
+
+import {
   to = proxmox_virtual_environment_container.pulse
   id = "cle-pve/102"
 }

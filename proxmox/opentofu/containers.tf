@@ -412,6 +412,12 @@ resource "proxmox_virtual_environment_container" "pulse" {
     type      = "tty"
   }
 
+  cpu {
+    architecture = "amd64"
+    cores        = local.lxc_guests.pulse.cores
+    limit        = 0
+  }
+
   memory {
     dedicated = local.lxc_guests.pulse.memory
     swap      = local.lxc_guests.pulse.swap

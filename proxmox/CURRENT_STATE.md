@@ -54,7 +54,7 @@ Current Proxmox LXC limits after tuning:
 
 | ID | Name | Cores | Memory | Swap | Rootfs |
 |---:|---|---:|---:|---:|---:|
-| 102 | `pulse` | 1 | 1536M | 768M | 4G |
+| 102 | `pulse` | 2 | 2048M | 768M | 4G |
 | 110 | `plex-pve` | 4 | 4096M | 1024M | 24G |
 | 111 | `jellyfin-pve` | 2 | 2048M | 512M | 24G |
 | 112 | `nas-pve` | 1 | 512M | 256M | 16G |
@@ -195,22 +195,21 @@ boot autostart while the new gaming VM is still being validated.
 ## IaC
 
 OpenTofu adoption has started under `proxmox/opentofu` in this repo. All current
-LXCs, both NixOS VMs, VM 100 `windows11`, the Tailscale tailnet policy,
-Tailscale DNS config, and stable Tailscale device tags/key-expiry/route settings
-are now imported or managed and plan no changes. VM 122 `bazzite-gaming` is the
-current exception and is pending adoption. The current Proxmox backup job,
-storage definitions, and Proxmox APT repository enablement are also imported and
-plan no changes. Current `chienlt.com` Cloudflare DNS records are imported and
-plan no changes. The Pulse-created Proxmox monitoring role, user, and token
-metadata are imported and plan no changes.
+LXCs, both NixOS VMs, VM 100 `windows11`, VM 122 `bazzite-gaming`, the Tailscale
+tailnet policy, Tailscale DNS config, stable Tailscale device tags/key-expiry and
+route settings, the current Proxmox backup job, storage definitions, Proxmox APT
+repository enablement, current `chienlt.com` Cloudflare DNS records, and the
+Pulse-created Proxmox monitoring role/user/token metadata are imported or
+managed. A full OpenTofu plan verified no changes after the 2026-06-06 VM 122
+import and CT 102 desired-state update.
 
 Local OpenTofu state on this workstation tracks the pre-existing active guests
 plus the live Tailscale policy, DNS config, stable device settings, selected
 route settings, platform settings, Cloudflare DNS records, and Pulse monitoring
-identity metadata, then verified a no-op follow-up plan. VM 122
-`bazzite-gaming` was created manually on 2026-05-10 and is pending OpenTofu
-adoption after the final VM settings are settled. The state file and local token
-env files are ignored by git.
+identity metadata, and VM 122 `bazzite-gaming`. VM 122 was created manually on
+2026-05-10 and remains a dedicated OpenTofu VM resource because of its Bazzite,
+OVMF, TPM, `vga: none`, and RTX 3060 passthrough settings. The state file and
+local token env files are ignored by git.
 
 A copy of the local state is backed up on `cle-pve`:
 
@@ -218,6 +217,8 @@ A copy of the local state is backed up on `cle-pve`:
 /tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260502-200900
 /tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260504-214447
 /tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260508-232851
+/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260606-102551
+/tank/fast-backups/opentofu/cle-pve/terraform.tfstate.20260606-105216
 ```
 
 Proxmox has user/token `opentofu@pve!cle-pve-adopt` for this adoption layer.

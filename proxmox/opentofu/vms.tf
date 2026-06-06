@@ -188,6 +188,137 @@ resource "proxmox_virtual_environment_vm" "windows11" {
   }
 }
 
+resource "proxmox_virtual_environment_vm" "bazzite_gaming" {
+  node_name   = local.node_name
+  vm_id       = local.bazzite_gaming_vm.vm_id
+  name        = local.bazzite_gaming_vm.name
+  description = local.bazzite_gaming_vm.description
+
+  acpi                                 = true
+  bios                                 = "ovmf"
+  boot_order                           = ["scsi0"]
+  delete_unreferenced_disks_on_destroy = true
+  machine                              = "pc-q35-10.1"
+  migrate                              = false
+  on_boot                              = false
+  protection                           = true
+  purge_on_destroy                     = true
+  reboot                               = false
+  reboot_after_update                  = true
+  scsi_hardware                        = "virtio-scsi-single"
+  started                              = true
+  stop_on_destroy                      = false
+  tablet_device                        = true
+  tags                                 = ["bazzite,gaming"]
+  template                             = false
+  timeout_clone                        = 1800
+  timeout_create                       = 1800
+  timeout_migrate                      = 1800
+  timeout_reboot                       = 1800
+  timeout_shutdown_vm                  = 1800
+  timeout_start_vm                     = 1800
+  timeout_stop_vm                      = 300
+
+  agent {
+    enabled = true
+    timeout = "15m"
+    trim    = false
+    type    = "virtio"
+  }
+
+  cpu {
+    cores   = local.bazzite_gaming_vm.cores
+    flags   = []
+    limit   = 0
+    numa    = false
+    sockets = 1
+    type    = "host"
+  }
+
+  disk {
+    aio          = "io_uring"
+    backup       = true
+    cache        = "none"
+    datastore_id = local.bazzite_gaming_vm.boot_disk_datastore
+    discard      = "on"
+    file_format  = "raw"
+    interface    = "scsi0"
+    iothread     = true
+    replicate    = true
+    size         = local.bazzite_gaming_vm.boot_disk_size
+    ssd          = true
+  }
+
+  efi_disk {
+    datastore_id      = local.bazzite_gaming_vm.boot_disk_datastore
+    file_format       = "raw"
+    pre_enrolled_keys = false
+    type              = "4m"
+  }
+
+  hostpci {
+    device = "hostpci0"
+    id     = "0000:01:00.0"
+    pcie   = true
+    rombar = true
+    xvga   = true
+  }
+
+  hostpci {
+    device = "hostpci1"
+    id     = "0000:01:00.1"
+    pcie   = true
+    rombar = true
+  }
+
+  memory {
+    dedicated      = local.bazzite_gaming_vm.memory
+    floating       = 0
+    keep_hugepages = false
+    shared         = 0
+  }
+
+  network_device {
+    bridge       = "vmbr0"
+    disconnected = false
+    firewall     = true
+    mac_address  = local.bazzite_gaming_vm.mac_address
+    model        = "virtio"
+    mtu          = 0
+    queues       = 0
+    rate_limit   = 0
+    vlan_id      = 0
+  }
+
+  operating_system {
+    type = "l26"
+  }
+
+  startup {
+    down_delay = -1
+    order      = local.bazzite_gaming_vm.startup_order
+    up_delay   = local.bazzite_gaming_vm.startup_up_delay
+  }
+
+  tpm_state {
+    datastore_id = local.bazzite_gaming_vm.boot_disk_datastore
+    version      = "v2.0"
+  }
+
+  vga {
+    type = "none"
+  }
+
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes = [
+      disk[0].path_in_datastore,
+      efi_disk[0].file_format,
+      keyboard_layout,
+    ]
+  }
+}
+
 resource "proxmox_virtual_environment_vm" "homelab_pve" {
   node_name   = local.node_name
   vm_id       = local.qemu_guests.homelab_pve.vm_id
