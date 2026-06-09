@@ -10,8 +10,8 @@ Current scope:
 - all pre-existing guests are imported into local OpenTofu state;
 - all current LXCs and both NixOS VMs are tightened and plan no changes without
   blanket `ignore_changes = all`;
-- VM 122 `bazzite-gaming` is imported as a dedicated VM resource, with a
-  targeted VM 122 plan showing no changes after the 2026-06-06 import;
+- VM 122 `bazzite-gaming` is imported as a dedicated VM resource, with current
+  memory managed by OpenTofu;
 - the live Tailscale tailnet policy is imported and managed from
   `tailscale-policy.hujson`;
 - Tailscale DNS config, stable infra device tags, and stable infra key-expiry
@@ -59,6 +59,7 @@ PVEAuditor
 OpenTofuAdoptDisk
 OpenTofuHomelabManage on /vms/101
 OpenTofuSelfhostManage on /vms/121
+OpenTofuBazziteManage on /vms/122
 OpenTofuPulseManage on /vms/102
 OpenTofuPlexManage on /vms/110
 OpenTofuJellyfinManage on /vms/111
@@ -80,10 +81,10 @@ pulse-monitor@pam!pulse-cle-pve-192-168-50-18
 `OpenTofuAdoptDisk` only adds `VM.Config.Disk`, which the provider needs to
 read imported VM disk metadata.
 
-The CT-scoped manage roles only add `VM.Audit,VM.Config.Options`, which is
-enough to apply provider normalization for the current LXCs without broad VM
-admin privileges. `OpenTofuPulseManage` also includes `VM.Config.Memory` on
-`/vms/102` so OpenTofu can adjust the Pulse LXC memory limit.
+The CT-scoped manage roles add `VM.Audit,VM.Config.Options`, which is enough to
+apply provider normalization for the current LXCs without broad VM admin
+privileges. CT roles that OpenTofu uses for memory tuning also include
+`VM.Config.Memory`.
 
 The VM 101-scoped manage role adds
 `VM.Audit,VM.Config.Disk,VM.Config.Options,VM.GuestAgent.Audit` on its VM path.
@@ -92,9 +93,10 @@ apply memory-limit changes. They intentionally do not include `VM.PowerMgmt`,
 so this OpenTofu token cannot shut down or restart the NixOS VMs.
 
 VM 122 `bazzite-gaming` is imported into state with its Bazzite, OVMF, TPM,
-`vga: none`, and RTX 3060 passthrough settings. Routine OpenTofu runs currently
-read it through `PVEAuditor`; no VM 122-scoped management role has been granted
-yet.
+`vga: none`, and RTX 3060 passthrough settings. `OpenTofuBazziteManage` grants
+`VM.Audit,VM.Config.Disk,VM.Config.Memory,VM.Config.Options`, and
+`VM.GuestAgent.Audit` on `/vms/122`, but intentionally does not grant
+`VM.PowerMgmt`.
 
 `OpenTofuStorageManage` adds `Datastore.Allocate,Datastore.Audit` on each
 adopted storage path. The provider requires `Datastore.Allocate` even to read
@@ -226,9 +228,9 @@ no changes without blanket `ignore_changes = all`:
 ```
 
 VM 122 `bazzite-gaming` is also a dedicated VM resource because of its Bazzite,
-OVMF, TPM, `vga: none`, and RTX 3060 passthrough settings. The 2026-06-06 import
-used a targeted import-only plan and a targeted follow-up plan verified no VM
-122 drift.
+OVMF, TPM, `vga: none`, and RTX 3060 passthrough settings. It is intentionally
+kept stopped by desired state and has 8G dedicated RAM with ballooning
+disabled.
 
 OpenTofu owns the normal provider-visible LXC inventory fields, including CPU,
 memory, rootfs size, mounts, device passthrough, network, startup order, and
@@ -244,7 +246,8 @@ Targeted LXC ignores remain:
 
 Each tightened LXC has a CT-scoped Proxmox role with
 `VM.Audit,VM.Config.Options` so OpenTofu can apply provider normalization without
-granting broad VM admin privileges.
+granting broad VM admin privileges. CTs with OpenTofu-managed memory tuning also
+have `VM.Config.Memory`.
 
 Targeted VM ignores remain:
 

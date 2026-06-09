@@ -1,6 +1,6 @@
 # cle-pve Current State
 
-Last verified: 2026-05-11.
+Last verified: 2026-06-09.
 
 ## Host
 
@@ -54,14 +54,14 @@ Current Proxmox LXC limits after tuning:
 
 | ID | Name | Cores | Memory | Swap | Rootfs |
 |---:|---|---:|---:|---:|---:|
-| 102 | `pulse` | 2 | 2048M | 768M | 4G |
-| 110 | `plex-pve` | 4 | 4096M | 1024M | 24G |
+| 102 | `pulse` | 2 | 1536M | 768M | 4G |
+| 110 | `plex-pve` | 4 | 2048M | 1024M | 24G |
 | 111 | `jellyfin-pve` | 2 | 2048M | 512M | 24G |
 | 112 | `nas-pve` | 1 | 512M | 256M | 16G |
 | 113 | `frigate-pve` | 4 | 4096M | 1024M | 24G |
-| 114 | `immich-pve` | 6 | 4096M | 1024M | 32G |
-| 115 | `backup-pve` | 2 | 1536M | 512M | 8G |
-| 116 | `traefik-pve` | 2 | 1024M | 512M | 8G |
+| 114 | `immich-pve` | 6 | 3072M | 1024M | 32G |
+| 115 | `backup-pve` | 2 | 1024M | 512M | 8G |
+| 116 | `traefik-pve` | 2 | 512M | 512M | 8G |
 
 Rootfs sizes are ZFS-backed and not shrunk during tuning. Memory and CPU limits
 are tuned conservatively from Proxmox day/week max usage, with extra headroom for
@@ -200,8 +200,8 @@ tailnet policy, Tailscale DNS config, stable Tailscale device tags/key-expiry an
 route settings, the current Proxmox backup job, storage definitions, Proxmox APT
 repository enablement, current `chienlt.com` Cloudflare DNS records, and the
 Pulse-created Proxmox monitoring role/user/token metadata are imported or
-managed. A full OpenTofu plan verified no changes after the 2026-06-06 VM 122
-import and CT 102 desired-state update.
+managed. A VM 122 targeted OpenTofu plan verified no changes after the
+2026-06-09 memory reduction and stopped desired state update.
 
 Local OpenTofu state on this workstation tracks the pre-existing active guests
 plus the live Tailscale policy, DNS config, stable device settings, selected
@@ -226,8 +226,7 @@ The user has `PVEAuditor` plus custom role `OpenTofuAdoptDisk` containing only
 `VM.Config.Disk`.
 
 Each tightened LXC has a CT-scoped role with `VM.Audit,VM.Config.Options`.
-CT 102 `OpenTofuPulseManage` also includes `VM.Config.Memory` so OpenTofu can
-adjust the Pulse LXC memory limit:
+CTs with OpenTofu-managed memory tuning also include `VM.Config.Memory`.
 
 | CT | Role |
 |---:|---|
@@ -249,6 +248,11 @@ VM 121 has VM-scoped role `OpenTofuSelfhostManage` with
 `VM.Audit,VM.Config.Disk,VM.Config.Memory,VM.Config.Options,VM.GuestAgent.Audit`.
 It does not include `VM.PowerMgmt`, so the OpenTofu token cannot shut down or
 restart `selfhost-pve`.
+
+VM 122 has VM-scoped role `OpenTofuBazziteManage` with
+`VM.Audit,VM.Config.Disk,VM.Config.Memory,VM.Config.Options`, and
+`VM.GuestAgent.Audit`. It does not include `VM.PowerMgmt`, so the OpenTofu
+token cannot start or stop `bazzite-gaming`.
 
 VM 100 has VM-scoped role `OpenTofuWindowsManage` with
 `VM.Allocate,VM.Audit,VM.Config.CDROM,VM.Config.CPU,VM.Config.Disk`,
@@ -530,6 +534,12 @@ Common devices:
 /dev/dri/card0
 ```
 
+Current caveat: on 2026-06-07 the Proxmox host exposed
+`/dev/dri/renderD128` and `/dev/dri/card1`, while imported LXC configs for
+Plex and Immich still reference `/dev/dri/card0`. Running containers still had
+their in-container `card0` device, but future restarts or OpenTofu updates that
+touch those containers may fail until the host card path is reviewed.
+
 Frigate CT 113 currently uses the iGPU for detect/decode paths and only
 transcodes main streams through go2rtc when an explicit main/live stream needs
 H.264 output. Recording inputs use go2rtc aliases that copy the camera video
@@ -639,17 +649,20 @@ clearing at `65 C`.
 Pulse alert delivery has a 15-minute cooldown and flapping protection enabled
 with a 5-minute window, 5 state changes to detect flapping, and a 15-minute
 flapping cooldown. Docker image update alerts fire only after an available
-update has persisted for 72 hours. Resource overrides suppress intentional
-powered-off/connectivity alerts for VM 100 `windows11` and VM 122
-`bazzite-gaming` under Pulse v5 stable guest keys
-`pve-192.168.50.13-100` and `pve-192.168.50.13-122`; `cle-viettel` host memory
-alerts use `90/85%` under raw host ID override key
-`cf46a880-112a-44d7-819b-520e81355e49`. `cle-pve` node memory alerts use
-`98/90%` and a 15-minute per-metric duration via
-`metricTimeThresholds.node.memory = 900`. CT 110 `plex-pve` CPU alerts use
+update has persisted for 72 hours. Storage usage alerts default to `90/88%`,
+Docker container memory-limit alerts use warning/critical thresholds of
+`95/98%`, and guest disk alerts default to `90/85%`. Resource overrides suppress
+intentional powered-off/connectivity alerts for VM 100 `windows11` and VM 122
+`bazzite-gaming` under Pulse v5 stable guest keys `pve-192.168.50.13-100` and
+`pve-192.168.50.13-122`; VM 122 also has a disk override of `96/94%` for its
+known-full Bazzite root disk. `cle-viettel` host memory alerts use `90/85%`
+under raw host ID override key `cf46a880-112a-44d7-819b-520e81355e49`.
+`cle-pve` node memory alerts use `98/90%` and a 15-minute per-metric duration
+via `metricTimeThresholds.node.memory = 900`. CT 110 `plex-pve` CPU alerts use
 `95/90%` under the Pulse v5 stable guest override key
 `pve-192.168.50.13-110`, so normal Plex transcode bursts do not page at the
-default guest CPU threshold.
+default guest CPU threshold. CT 113 `frigate-pve` memory alerts use `90/88%`
+under the Pulse v5 stable guest override key `pve-192.168.50.13-113`.
 
 `cle-pve` runs `pulse-agent.service` from `/usr/local/bin/pulse-agent`, pointing
 at `http://192.168.50.18:7655` with host metrics enabled, Docker/Kubernetes

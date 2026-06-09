@@ -1,7 +1,42 @@
 # cle-pve Infrastructure Changelog
 
+## 2026-06-09
+
+- Stopped VM 122 `bazzite-gaming` and reduced its dedicated RAM from `10240M`
+  back to `8192M` to relieve host memory pressure. OpenTofu desired state now
+  keeps the VM stopped with 8G dedicated RAM and ballooning disabled.
+
+## 2026-06-07
+
+- Raised VM 122 `bazzite-gaming` from `8192M` to `10240M` dedicated RAM through
+  OpenTofu while keeping it stopped and `onboot=0`.
+- Reduced LXC memory limits through OpenTofu to leave more headroom for the
+  on-demand gaming VM: CT 102 `pulse` to `1536M`, CT 110 `plex-pve` to
+  `2048M`, CT 114 `immich-pve` to `3072M`, CT 115 `backup-pve` to `1024M`, and
+  CT 116 `traefik-pve` to `512M`. CT 113 `frigate-pve` and CT 111
+  `jellyfin-pve` were intentionally left unchanged because live memory/swap
+  pressure was already high.
+- Bootstrapped the minimal Proxmox RBAC needed for the memory apply:
+  `OpenTofuPlexManage`, `OpenTofuImmichManage`, `OpenTofuBackupManage`, and
+  `OpenTofuTraefikManage` now include `VM.Config.Memory`, and new
+  `OpenTofuBazziteManage` is assigned on `/vms/122`. None of these roles grant
+  `VM.PowerMgmt`.
+- OpenTofu apply surfaced that the host currently exposes `/dev/dri/card1` while
+  imported Plex/Immich LXC configs still reference `/dev/dri/card0`; the running
+  containers remain up and the final OpenTofu plan verified no drift, but review
+  the iGPU card path before restarting those LXCs.
+
 ## 2026-06-06
 
+- Tuned CT 102 Pulse thresholds to clear recent capacity and memory noise while
+  keeping the underlying issues visible in live infrastructure checks: storage
+  defaults now use `90/88%`, VM 122 `bazzite-gaming` disk alerts use `96/94%`,
+  CT 113 `frigate-pve` memory alerts use `90/88%`, and Docker container
+  memory-limit alerts use `95/98%` warning/critical thresholds. The live backup
+  is `/etc/pulse/alerts.json.backup-threshold-tuning-20260606-121428`; Pulse
+  was restarted, and the recent capacity/memory alerts cleared during
+  verification. The remaining active Pulse alerts are the existing Proxmox
+  `rpool` degraded/device alerts, which still need separate repair planning.
 - Imported VM 122 `bazzite-gaming` into the local OpenTofu state as a dedicated
   VM resource matching its existing Bazzite, OVMF, TPM, `vga: none`, and RTX
   3060 passthrough configuration. No VM memory change was made. The VM 122

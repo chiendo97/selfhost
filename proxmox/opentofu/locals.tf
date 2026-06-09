@@ -68,7 +68,7 @@ locals {
       description        = "Pulse monitoring LXC from community-scripts"
       tags               = ["community-script", "monitoring", "proxmox"]
       cores              = 2
-      memory             = 2048
+      memory             = 1536
       swap               = 768
       rootfs_datastore   = "local-zfs"
       rootfs_size        = 4
@@ -90,7 +90,7 @@ locals {
       description        = "Plex with Intel iGPU passthrough"
       tags               = []
       cores              = 4
-      memory             = 4096
+      memory             = 2048
       swap               = 1024
       rootfs_datastore   = "fast-vm"
       rootfs_size        = 24
@@ -192,7 +192,7 @@ locals {
       description        = "Immich with iGPU/OpenVINO"
       tags               = []
       cores              = 6
-      memory             = 4096
+      memory             = 3072
       swap               = 1024
       rootfs_datastore   = "fast-vm"
       rootfs_size        = 32
@@ -218,7 +218,7 @@ locals {
       description        = "Kopia backup server"
       tags               = []
       cores              = 2
-      memory             = 1536
+      memory             = 1024
       swap               = 512
       rootfs_datastore   = "fast-vm"
       rootfs_size        = 8
@@ -242,7 +242,7 @@ locals {
       description        = "Traefik ingress LXC"
       tags               = ["proxy"]
       cores              = 2
-      memory             = 1024
+      memory             = 512
       swap               = 512
       rootfs_datastore   = "fast-vm"
       rootfs_size        = 8

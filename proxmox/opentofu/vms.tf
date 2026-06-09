@@ -206,7 +206,7 @@ resource "proxmox_virtual_environment_vm" "bazzite_gaming" {
   reboot                               = false
   reboot_after_update                  = true
   scsi_hardware                        = "virtio-scsi-single"
-  started                              = true
+  started                              = false
   stop_on_destroy                      = false
   tablet_device                        = true
   tags                                 = ["bazzite,gaming"]
