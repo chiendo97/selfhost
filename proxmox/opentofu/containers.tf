@@ -7,8 +7,8 @@ resource "proxmox_virtual_environment_container" "app_igpu_lxc" {
   node_name     = local.node_name
   vm_id         = each.value.vm_id
   tags          = each.value.tags
-  started       = true
-  start_on_boot = true
+  started       = try(each.value.started, true)
+  start_on_boot = try(each.value.start_on_boot, true)
   unprivileged  = each.value.unprivileged
 
   console {
@@ -98,21 +98,22 @@ resource "proxmox_virtual_environment_container" "app_igpu_lxc" {
     prevent_destroy = true
     ignore_changes = [
       operating_system[0].template_file_id,
+      start_on_boot,
     ]
   }
 }
 
 resource "proxmox_virtual_environment_container" "media_igpu_lxc" {
   for_each = {
-    plex_pve     = local.lxc_guests.plex_pve
-    jellyfin_pve = local.lxc_guests.jellyfin_pve
+    plex_pve     = merge({ started = true, start_on_boot = true }, local.lxc_guests.plex_pve)
+    jellyfin_pve = merge({ started = true, start_on_boot = true }, local.lxc_guests.jellyfin_pve)
   }
 
   node_name     = local.node_name
   vm_id         = each.value.vm_id
   tags          = each.value.tags
-  started       = true
-  start_on_boot = true
+  started       = each.value.started
+  start_on_boot = each.value.start_on_boot
   unprivileged  = each.value.unprivileged
 
   console {

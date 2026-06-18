@@ -315,6 +315,7 @@ resource "proxmox_virtual_environment_vm" "bazzite_gaming" {
       disk[0].path_in_datastore,
       efi_disk[0].file_format,
       keyboard_layout,
+      started,
     ]
   }
 }
@@ -360,7 +361,7 @@ resource "proxmox_virtual_environment_vm" "homelab_pve" {
   cpu {
     cores   = local.qemu_guests.homelab_pve.cores
     flags   = []
-    limit   = 0
+    limit   = local.qemu_guests.homelab_pve.cpu_limit
     numa    = false
     sockets = 1
     type    = "host"
@@ -368,7 +369,7 @@ resource "proxmox_virtual_environment_vm" "homelab_pve" {
 
   memory {
     dedicated      = local.qemu_guests.homelab_pve.memory
-    floating       = 0
+    floating       = local.qemu_guests.homelab_pve.floating_memory
     keep_hugepages = false
     shared         = 0
   }

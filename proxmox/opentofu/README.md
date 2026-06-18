@@ -228,9 +228,10 @@ no changes without blanket `ignore_changes = all`:
 ```
 
 VM 122 `bazzite-gaming` is also a dedicated VM resource because of its Bazzite,
-OVMF, TPM, `vga: none`, and RTX 3060 passthrough settings. It is intentionally
-kept stopped by desired state and has 8G dedicated RAM with ballooning
-disabled.
+OVMF, TPM, `vga: none`, and RTX 3060 passthrough settings. It has 10G
+dedicated RAM with ballooning disabled, `on_boot=false`, and OpenTofu ignores
+runtime `started` drift so the gaming VM can stay on-demand without requiring
+the OpenTofu token to hold `VM.PowerMgmt`.
 
 OpenTofu owns the normal provider-visible LXC inventory fields, including CPU,
 memory, rootfs size, mounts, device passthrough, network, startup order, and

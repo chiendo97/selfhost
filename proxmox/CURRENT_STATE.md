@@ -1,6 +1,6 @@
 # cle-pve Current State
 
-Last verified: 2026-06-09.
+Last verified: 2026-06-14.
 
 ## Host
 
@@ -74,14 +74,18 @@ The NixOS VMs use in-guest zram swap from their dotfiles NixOS configs:
 | VM | RAM | zram swap |
 |---:|---:|---:|
 | 101 `homelab-pve` | 8G | ~8G |
-| 121 `selfhost-pve` | 8G | ~8G |
+| 121 `selfhost-pve` | 6G | ~6G |
 
 This is guest-local compressed swap. It does not create an NVMe swap partition
 or swapfile.
 
+VM 101 `homelab-pve` has an 8G maximum allocation with Proxmox ballooning
+enabled down to a 4G floating target. It also has `cpulimit: 6` so heavy
+development builds cannot consume all host CPU.
+
 VM 121 `selfhost-pve` has virtio balloon statistics enabled with the balloon
-target equal to the full 8G allocation. This is for Proxmox memory reporting,
-not for shrinking the VM below 8G during normal operation.
+target equal to the full 6G allocation. This is for Proxmox memory reporting,
+not for shrinking the VM below 6G during normal operation.
 
 ## Bazzite Gaming VM
 
@@ -95,7 +99,7 @@ VM 122 `bazzite-gaming` runs Bazzite with RTX 3060 passthrough:
 | Tailscale | `bazzite-gaming.tail148f9.ts.net`, `tag:trusted`, Tailscale SSH enabled |
 | Firmware / machine | OVMF, `pc-q35-10.1` |
 | CPU | 8 vCPU, `host` |
-| Memory | 8G dedicated, ballooning disabled |
+| Memory | 10G dedicated, ballooning disabled |
 | Boot disk | `fast-vm:vm-122-disk-1`, 128G, virtio-scsi, discard, SSD flag |
 | EFI / TPM | `fast-vm` EFI disk with `pre-enrolled-keys=0`, TPM 2.0 state |
 | Network | virtio on `vmbr0`, firewall enabled, MAC `BC:24:11:50:01:22` |
@@ -174,7 +178,7 @@ removed after the non-Secure-Boot boot path was confirmed.
 ```text
 102 pulse         order=10, up=10
 112 nas-pve       order=20, up=15
-110 plex-pve      order=30, up=15
+110 plex-pve      stopped, onboot disabled
 111 jellyfin-pve  order=40, up=15
 113 frigate-pve   order=50, up=30
 114 immich-pve    order=60, up=45
@@ -200,8 +204,9 @@ tailnet policy, Tailscale DNS config, stable Tailscale device tags/key-expiry an
 route settings, the current Proxmox backup job, storage definitions, Proxmox APT
 repository enablement, current `chienlt.com` Cloudflare DNS records, and the
 Pulse-created Proxmox monitoring role/user/token metadata are imported or
-managed. A VM 122 targeted OpenTofu plan verified no changes after the
-2026-06-09 memory reduction and stopped desired state update.
+managed. A full OpenTofu plan verified no changes after the 2026-06-10 VM 121
+memory reduction, Plex stop, Bazzite memory reallocation, and runtime
+power-state ignore update.
 
 Local OpenTofu state on this workstation tracks the pre-existing active guests
 plus the live Tailscale policy, DNS config, stable device settings, selected
@@ -252,7 +257,8 @@ restart `selfhost-pve`.
 VM 122 has VM-scoped role `OpenTofuBazziteManage` with
 `VM.Audit,VM.Config.Disk,VM.Config.Memory,VM.Config.Options`, and
 `VM.GuestAgent.Audit`. It does not include `VM.PowerMgmt`, so the OpenTofu
-token cannot start or stop `bazzite-gaming`.
+token cannot start or stop `bazzite-gaming`; runtime `started` drift is ignored
+for this on-demand VM.
 
 VM 100 has VM-scoped role `OpenTofuWindowsManage` with
 `VM.Allocate,VM.Audit,VM.Config.CDROM,VM.Config.CPU,VM.Config.Disk`,
@@ -640,11 +646,16 @@ CT 102 also runs Tailscale `1.96.4` as `pulse-pve.tail148f9.ts.net`, tagged
 `/dev/net/tun` passthrough so Tailscale runs in normal tunnel mode. Tailscale
 tags and key-expiry settings for `pulse_pve` are imported into OpenTofu.
 
-Pulse alert notifications are active. CT 102 stores the enabled `Telegram
-Alerts` webhook encrypted at `/etc/pulse/webhooks.enc`; the Telegram bot token
-and chat ID are sourced from local `.env.local` during setup and are not stored
-in the repo. Pulse host-agent SMART disk temperature alerts trigger at `70 C`,
-clearing at `65 C`.
+Pulse alert evaluation remains active, but Telegram alert delivery is currently
+paused. On 2026-06-10, CT 102's encrypted `Telegram Alerts` webhook config was
+moved from `/etc/pulse/webhooks.enc` to
+`/etc/pulse/webhooks.enc.disabled-telegram-20260610-235842`, leaving
+`/api/notifications/health` with `webhooks.enabled=0` / `webhooks.total=0`.
+Restore Telegram delivery by moving that file back to `/etc/pulse/webhooks.enc`
+and restarting `pulse.service`. The Telegram bot token and chat ID are sourced
+from local `.env.local` during setup and are not stored in the repo. Pulse
+host-agent SMART disk temperature alerts trigger at `70 C`, clearing at
+`65 C`.
 
 Pulse alert delivery has a 15-minute cooldown and flapping protection enabled
 with a 5-minute window, 5 state changes to detect flapping, and a 15-minute

@@ -1,7 +1,36 @@
 # cle-pve Infrastructure Changelog
 
+## 2026-06-14
+
+- Enabled VM 101 `homelab-pve` Proxmox ballooning with an `8192M` maximum and
+  `4096M` floating target, then updated OpenTofu desired state to preserve the
+  live `balloon: 4096` setting.
+- Capped VM 101 `homelab-pve` at 6 host CPU cores with Proxmox `cpulimit: 6`
+  to keep heavy homelab builds from saturating the Proxmox host.
+
+## 2026-06-10
+
+- Reduced VM 121 `selfhost-pve` from `8192M` to `6144M` dedicated/floating
+  memory to reduce host overcommit while keeping the Docker app stack running.
+  The VM remained online during the config change; reboot during a quiet window
+  if the running guest needs to fully clear old zram swap.
+- Disabled Pulse Telegram alert delivery while keeping alert evaluation,
+  dashboards, agents, and active alert tracking running. The encrypted webhook
+  config was moved on CT 102 from `/etc/pulse/webhooks.enc` to
+  `/etc/pulse/webhooks.enc.disabled-telegram-20260610-235842`, then
+  `pulse.service` was restarted. Verification showed Pulse active,
+  `/api/alerts/config` still enabled, and `/api/notifications/health`
+  reporting `webhooks.enabled=0` / `webhooks.total=0`.
+
 ## 2026-06-09
 
+- Stopped CT 110 `plex-pve`, disabled its autostart, and reallocated its 2G
+  memory headroom back to VM 122 `bazzite-gaming`, raising Bazzite's configured
+  dedicated RAM from `8192M` to `10240M`. Bazzite was already running, so the
+  running QEMU process remains at 8G until the VM is rebooted. OpenTofu now
+  ignores VM 122 runtime `started` drift while keeping `onboot=0`, so the
+  gaming VM can stay on-demand without granting the OpenTofu token
+  `VM.PowerMgmt`.
 - Stopped VM 122 `bazzite-gaming` and reduced its dedicated RAM from `10240M`
   back to `8192M` to relieve host memory pressure. OpenTofu desired state now
   keeps the VM stopped with 8G dedicated RAM and ballooning disabled.
